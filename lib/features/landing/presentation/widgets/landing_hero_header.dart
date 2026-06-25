@@ -95,58 +95,74 @@ class LandingHeroNavBar extends StatelessWidget {
     if (wide) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Image.asset(
-                  'assets/images/logoWhite.png',
-                  height: 48,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              alignment: Alignment.center,
               children: [
-                for (var i = 0; i < heroLinks.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 22),
-                  LandingHeroNavLink(
-                    label: heroLinks[i],
-                    isActive: isNavActive(activeNav, heroLinks[i]),
-                    onTap: () => onNavLink(heroLinks[i]),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Image.asset(
+                    'assets/images/logoWhite.png',
+                    height: 48,
                   ),
-                ],
-              ],
-            ),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Wrap(
-                  spacing: 10,
-                  children: [
-                    LandingCompactStoreBadge(
-                      label: 'Download on the',
-                      store: 'App Store',
-                      leading: const Icon(
-                        Icons.apple_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onTap: LandingNavigation.openAppStore,
-                    ),
-                    LandingCompactStoreBadge(
-                      label: 'GET IT ON',
-                      store: 'Google Play',
-                      leading: const LandingPlayStoreIcon(size: 20),
-                      onTap: LandingNavigation.openPlayStore,
-                    ),
-                  ],
                 ),
-              ),
-            ),
-          ],
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth - 320,
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (var i = 0; i < heroLinks.length; i++) ...[
+                              if (i > 0) const SizedBox(width: 22),
+                              LandingHeroNavLink(
+                                label: heroLinks[i],
+                                isActive: isNavActive(activeNav, heroLinks[i]),
+                                onTap: () => onNavLink(heroLinks[i]),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      LandingCompactStoreBadge(
+                        label: 'Download on the',
+                        store: 'App Store',
+                        leading: const Icon(
+                          Icons.apple_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onTap: LandingNavigation.openAppStore,
+                      ),
+                      const SizedBox(width: 10),
+                      LandingCompactStoreBadge(
+                        label: 'GET IT ON',
+                        store: 'Google Play',
+                        leading: const LandingPlayStoreIcon(size: 20),
+                        onTap: LandingNavigation.openPlayStore,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       );
     }
@@ -158,13 +174,6 @@ class LandingHeroNavBar extends StatelessWidget {
           child: Row(
             children: [
               Image.asset('assets/images/logoWhite.png', height: 40),
-              const Spacer(),
-              LandingCompactStoreBadge(
-                label: 'GET IT ON',
-                store: 'Google Play',
-                leading: const LandingPlayStoreIcon(size: 20),
-                onTap: LandingNavigation.openPlayStore,
-              ),
             ],
           ),
         ),

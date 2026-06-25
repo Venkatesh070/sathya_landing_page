@@ -209,13 +209,13 @@ class LandingFooter extends StatelessWidget {
   ];
 
   static const _maxContentWidth = 1280.0;
-  static const _columnGap = 80.0;
+  static const _columnGap = 48.0;
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= 900;
-    final fiveColumns = width >= 1200;
+    final fiveColumns = width >= 1000;
 
     return Container(
       width: double.infinity,
@@ -230,18 +230,26 @@ class LandingFooter extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: wide ? 56 : 24),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-                child: fiveColumns
-                    ? _fiveColumnLayout(wide: wide)
-                    : wide
-                        ? _twoRowLayout(wide: wide)
-                        : _stackedLayout(wide: wide),
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final contentWidth = constraints.maxWidth
+                    .clamp(0.0, _maxContentWidth)
+                    .toDouble();
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: contentWidth,
+                    child: fiveColumns
+                        ? _fiveColumnLayout(wide: wide)
+                        : wide
+                            ? _twoRowLayout(wide: wide)
+                            : _stackedLayout(wide: wide),
+                  ),
+                );
+              },
             ),
           ),
-          SizedBox(height: wide ? 40 : 36),
+          SizedBox(height: wide ? 20 : 26),
           Divider(
             height: 1,
             thickness: 1,
@@ -261,16 +269,29 @@ class LandingFooter extends StatelessWidget {
                     color: Colors.white60,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 Center(
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
                       onTap: LandingNavigation.openRedinWebsite,
-                      child: Image.asset(
-                        'assets/images/Redin Consulting logo.jpg',
-                        height: wide ? 32 : 28,
-                        fit: BoxFit.contain,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Developed by',
+                            style: AppTypography.inter(
+                              fontSize: wide ? 13 : 12,
+                              color: Colors.white60,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Image.asset(
+                            'assets/images/Redin Consulting logo.png',
+                            height: wide ? 40 : 33,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -287,15 +308,15 @@ class LandingFooter extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(flex: 3, child: _aboutSathya(wide: wide)),
+        Expanded(child: _aboutSathya(wide: wide)),
         const SizedBox(width: _columnGap),
-        Expanded(flex: 2, child: _address(wide: wide)),
+        Expanded(child: _address(wide: wide)),
         const SizedBox(width: _columnGap),
-        Expanded(flex: 2, child: _contactUs(wide: wide)),
+        Expanded(child: _contactUs(wide: wide)),
         const SizedBox(width: _columnGap),
-        Expanded(flex: 2, child: _quickLinksSection(wide: wide)),
+        Expanded(child: _quickLinksSection(wide: wide)),
         const SizedBox(width: _columnGap),
-        Expanded(flex: 3, child: _downloadApp(wide: wide, stackBadges: false)),
+        Expanded(child: _downloadApp(wide: wide, stackBadges: false)),
       ],
     );
   }
@@ -307,11 +328,11 @@ class LandingFooter extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(flex: 3, child: _aboutSathya(wide: wide)),
+            Expanded(child: _aboutSathya(wide: wide)),
             const SizedBox(width: _columnGap),
-            Expanded(flex: 2, child: _address(wide: wide)),
+            Expanded(child: _address(wide: wide)),
             const SizedBox(width: _columnGap),
-            Expanded(flex: 2, child: _contactUs(wide: wide)),
+            Expanded(child: _contactUs(wide: wide)),
           ],
         ),
         const SizedBox(height: 56),
@@ -653,6 +674,227 @@ class LandingStoreBadge extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LandingScrollToTopButton extends StatefulWidget {
+  const LandingScrollToTopButton({
+    super.key,
+    required this.footerKey,
+    required this.visible,
+    required this.scrollGeneration,
+    required this.onPressed,
+  });
+
+  final GlobalKey footerKey;
+  final bool visible;
+  final int scrollGeneration;
+  final VoidCallback onPressed;
+
+  @override
+  State<LandingScrollToTopButton> createState() =>
+      _LandingScrollToTopButtonState();
+}
+
+class _FooterSplitClipper extends CustomClipper<Rect> {
+  const _FooterSplitClipper({required this.ratio, required this.topPortion});
+
+  final double ratio;
+  final bool topPortion;
+
+  @override
+  Rect getClip(Size size) {
+    final boundary = size.height * ratio.clamp(0.0, 1.0);
+    if (topPortion) {
+      return Rect.fromLTRB(0, 0, size.width, boundary);
+    }
+    return Rect.fromLTRB(0, boundary, size.width, size.height);
+  }
+
+  @override
+  bool shouldReclip(_FooterSplitClipper oldClipper) =>
+      oldClipper.ratio != ratio || oldClipper.topPortion != topPortion;
+}
+
+class _LandingScrollToTopButtonState extends State<LandingScrollToTopButton> {
+  final _measureKey = GlobalKey();
+  bool _hovered = false;
+  double _split = 1;
+  bool _splitUpdateScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleSplitUpdate();
+  }
+
+  @override
+  void didUpdateWidget(covariant LandingScrollToTopButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.scrollGeneration != widget.scrollGeneration ||
+        oldWidget.visible != widget.visible) {
+      _scheduleSplitUpdate();
+    }
+  }
+
+  void _scheduleSplitUpdate() {
+    if (_splitUpdateScheduled) return;
+    _splitUpdateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _splitUpdateScheduled = false;
+      if (!mounted) return;
+      _updateSplit();
+    });
+  }
+
+  double _computeFooterSplit() {
+    final footerCtx = widget.footerKey.currentContext;
+    final buttonCtx = _measureKey.currentContext;
+    if (footerCtx == null || buttonCtx == null) return 1;
+
+    final footerBox = footerCtx.findRenderObject();
+    final buttonBox = buttonCtx.findRenderObject();
+    if (footerBox is! RenderBox ||
+        buttonBox is! RenderBox ||
+        !footerBox.hasSize ||
+        !buttonBox.hasSize) {
+      return 1;
+    }
+
+    final buttonHeight = buttonBox.size.height;
+    if (buttonHeight <= 0) return 1;
+
+    final footerTopInButton = buttonBox.globalToLocal(
+      footerBox.localToGlobal(Offset.zero),
+    ).dy;
+
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final snappedBoundary = (footerTopInButton * dpr).round() / dpr;
+
+    return (snappedBoundary / buttonHeight).clamp(0.0, 1.0);
+  }
+
+  void _updateSplit() {
+    final split = _computeFooterSplit();
+    if ((split - _split).abs() > 0.0001) {
+      setState(() => _split = split);
+    }
+  }
+
+  Widget _buttonFace({required bool onFooter}) {
+    final bgColor =
+        onFooter ? Colors.white : LandingColors.headerFooterBg;
+    final fgColor =
+        onFooter ? LandingColors.headerFooterBg : Colors.white;
+
+    return ColoredBox(
+      color: bgColor,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: _hovered ? 16 : 12,
+          vertical: 12,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.keyboard_arrow_up_rounded,
+              color: fgColor,
+              size: 30,
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              alignment: Alignment.centerLeft,
+              child: _hovered
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        'Scroll to top',
+                        style: AppTypography.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: fgColor,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _splitButton(double split) {
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        ClipRect(
+          clipper: _FooterSplitClipper(ratio: split, topPortion: true),
+          child: _buttonFace(onFooter: false),
+        ),
+        ClipRect(
+          clipper: _FooterSplitClipper(ratio: split, topPortion: false),
+          child: _buttonFace(onFooter: true),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      offset: widget.visible ? Offset.zero : const Offset(0, 1.5),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        opacity: widget.visible ? 1 : 0,
+        duration: const Duration(milliseconds: 220),
+        child: IgnorePointer(
+          ignoring: !widget.visible,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 24, bottom: 28),
+            child: MouseRegion(
+              onEnter: (_) {
+                setState(() => _hovered = true);
+                _scheduleSplitUpdate();
+              },
+              onExit: (_) {
+                setState(() => _hovered = false);
+                _scheduleSplitUpdate();
+              },
+              cursor: SystemMouseCursors.click,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onPressed,
+                      child: KeyedSubtree(
+                        key: _measureKey,
+                        child: _splitButton(_split),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

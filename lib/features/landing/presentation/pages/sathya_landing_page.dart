@@ -22,8 +22,11 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
   final _storeWorksKey = GlobalKey();
   final _catalogueKey = GlobalKey();
   final _ctaKey = GlobalKey();
+  final _footerKey = GlobalKey();
 
   String _activeNav = 'Home';
+  bool _showScrollToTop = false;
+  int _scrollGeneration = 0;
 
   static const _navSections = <(String, String)>[
     ('Home', 'home'),
@@ -37,9 +40,10 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_updateActiveSection);
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateActiveSection();
+      _onScroll();
       _scrollToPendingSection();
     });
   }
@@ -81,7 +85,7 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_updateActiveSection);
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
@@ -100,6 +104,43 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
 
   double _scrollAnchor(BuildContext context) {
     return MediaQuery.paddingOf(context).top + 24;
+  }
+
+  void _onScroll() {
+    _updateActiveSection();
+    if (!_scrollController.hasClients || !mounted) return;
+
+    final show = _scrollController.offset > 320;
+    if (!show) {
+      if (_showScrollToTop) {
+        setState(() => _showScrollToTop = false);
+      }
+      return;
+    }
+
+    setState(() {
+      _showScrollToTop = true;
+      _scrollGeneration++;
+    });
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController
+        .animateTo(
+          0,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeInOut,
+        )
+        .whenComplete(() {
+      if (mounted) {
+        setState(() {
+          _activeNav = 'Home';
+          _showScrollToTop = false;
+          _scrollGeneration++;
+        });
+      }
+    });
   }
 
   void _updateActiveSection() {
@@ -175,51 +216,66 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: LandingColors.sectionStoreWorks,
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            _LandingHeaderHeroSection(
-              sectionKey: _homeKey,
-              activeNav: _activeNav,
-              onNavLink: _scrollToSection,
-              onDownload: LandingNavigation.openPlayStore,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                _LandingHeaderHeroSection(
+                  sectionKey: _homeKey,
+                  activeNav: _activeNav,
+                  onNavLink: _scrollToSection,
+                  onDownload: LandingNavigation.openPlayStore,
+                ),
+                LandingScrollReveal(
+                  scrollController: _scrollController,
+                  child: _AboutSection(sectionKey: _aboutKey),
+                ),
+                LandingScrollReveal(
+                  scrollController: _scrollController,
+                  delay: const Duration(milliseconds: 60),
+                  child: _CoreFeaturesSection(
+                    sectionKey: _featuresKey,
+                    scrollController: _scrollController,
+                  ),
+                ),
+                LandingScrollReveal(
+                  scrollController: _scrollController,
+                  delay: const Duration(milliseconds: 60),
+                  child: _CataloguePromoSection(sectionKey: _catalogueKey),
+                ),
+                LandingScrollReveal(
+                  scrollController: _scrollController,
+                  delay: const Duration(milliseconds: 60),
+                  child: _StoreWorksSection(
+                    sectionKey: _storeWorksKey,
+                    scrollController: _scrollController,
+                  ),
+                ),
+                LandingScrollReveal(
+                  scrollController: _scrollController,
+                  delay: const Duration(milliseconds: 60),
+                  child: _DownloadCtaSection(sectionKey: _ctaKey),
+                ),
+                LandingFooter(
+                  key: _footerKey,
+                  onLinkTap: _onFooterLink,
+                ),
+              ],
             ),
-            LandingScrollReveal(
-              scrollController: _scrollController,
-              child: _AboutSection(sectionKey: _aboutKey),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: LandingScrollToTopButton(
+              footerKey: _footerKey,
+              visible: _showScrollToTop,
+              scrollGeneration: _scrollGeneration,
+              onPressed: _scrollToTop,
             ),
-            LandingScrollReveal(
-              scrollController: _scrollController,
-              delay: const Duration(milliseconds: 60),
-              child: _CoreFeaturesSection(
-                sectionKey: _featuresKey,
-                scrollController: _scrollController,
-              ),
-            ),
-            LandingScrollReveal(
-              scrollController: _scrollController,
-              delay: const Duration(milliseconds: 60),
-              child: _CataloguePromoSection(sectionKey: _catalogueKey),
-            ),
-            LandingScrollReveal(
-              scrollController: _scrollController,
-              delay: const Duration(milliseconds: 60),
-              child: _StoreWorksSection(
-                sectionKey: _storeWorksKey,
-                scrollController: _scrollController,
-              ),
-            ),
-            LandingScrollReveal(
-              scrollController: _scrollController,
-              delay: const Duration(milliseconds: 60),
-              child: _DownloadCtaSection(sectionKey: _ctaKey),
-            ),
-            LandingFooter(
-              onLinkTap: _onFooterLink,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -294,7 +350,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
                       onNavLink: onNavLink,
                       onDownload: onDownload,
                     ),
-                    Expanded(child: _heroContent(wide, onDownload)),
+                    Expanded(child: _heroContent(wide)),
                   ],
                 ),
               ),
@@ -305,7 +361,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
     );
   }
 
-  Widget _heroContent(bool wide, VoidCallback onDownload) {
+  Widget _heroContent(bool wide) {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: wide ? 80 : 20,
@@ -345,35 +401,6 @@ class _LandingHeaderHeroSection extends StatelessWidget {
               ),
             ),
           ),
-          if (!wide) ...[
-            const SizedBox(height: 24),
-            LandingStaggerIn(
-              delay: const Duration(milliseconds: 400),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  LandingStoreBadge(
-                    label: 'Download on the',
-                    store: 'App Store',
-                    leading: const Icon(
-                      Icons.apple_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                    onTap: LandingNavigation.openAppStore,
-                  ),
-                  LandingStoreBadge(
-                    label: 'GET IT ON',
-                    store: 'Google Play',
-                    leading: const LandingPlayStoreIcon(),
-                    onTap: LandingNavigation.openPlayStore,
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

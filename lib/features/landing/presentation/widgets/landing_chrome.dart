@@ -222,7 +222,7 @@ class LandingFooter extends StatelessWidget {
       color: LandingColors.headerFooterBg,
       padding: EdgeInsets.only(
         top: wide ? 40 : 32,
-        bottom: wide ? 40 : 32,
+        bottom: wide ? 20 : 32,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -263,10 +263,16 @@ class LandingFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Center(
-                  child: Image.asset(
-                    'assets/images/Redin Consulting logo.jpg',
-                    height: wide ? 32 : 28,
-                    fit: BoxFit.contain,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: LandingNavigation.openRedinWebsite,
+                      child: Image.asset(
+                        'assets/images/Redin Consulting logo.jpg',
+                        height: wide ? 32 : 28,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -412,7 +418,7 @@ class LandingFooter extends StatelessWidget {
         _sectionTitle('Address', wide: wide),
         const SizedBox(height: 12),
         _sectionBody(
-          'Pinetown Durban, 3610\nSouth Africa',
+          'Pinetown,\nDurban, 3610\nSouth Africa.',
           wide: wide,
         ),
       ],
@@ -506,7 +512,7 @@ class LandingFooter extends StatelessWidget {
           color: Colors.white,
           size: 28,
         ),
-        onTap: LandingNavigation.openPlayStore,
+        onTap: LandingNavigation.openAppStore,
       ),
       LandingStoreBadge(
         label: 'GET IT ON',

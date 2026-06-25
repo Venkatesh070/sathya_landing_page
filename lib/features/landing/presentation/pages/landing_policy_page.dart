@@ -4,6 +4,7 @@ import 'package:sathya_landing/core/theme/app_typography.dart';
 import 'package:sathya_landing/features/landing/presentation/landing_colors.dart';
 import 'package:sathya_landing/features/landing/presentation/landing_navigation.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_chrome.dart';
+import 'package:sathya_landing/features/landing/presentation/widgets/landing_hero_header.dart';
 
 class PolicySection {
   const PolicySection({required this.title, required this.body});
@@ -74,6 +75,7 @@ class LandingPolicyPage extends StatelessWidget {
     required this.route,
     this.body,
     this.sections,
+    this.useHeroHeader = false,
   }) : assert(body != null || sections != null);
 
   final String title;
@@ -81,8 +83,13 @@ class LandingPolicyPage extends StatelessWidget {
   final String route;
   final String? body;
   final List<PolicySection>? sections;
+  final bool useHeroHeader;
 
   void _onLink(String label) {
+    LandingNavigation.handleLink(label, currentRoute: route);
+  }
+
+  void _onHeroNavLink(String label) {
     LandingNavigation.handleLink(label, currentRoute: route);
   }
 
@@ -93,16 +100,23 @@ class LandingPolicyPage extends StatelessWidget {
       backgroundColor: LandingColors.cream,
       body: Column(
         children: [
-          LandingNavBar(
-            active: activeNav,
-            onHome: LandingNavigation.goToLanding,
-            onAbout: LandingNavigation.goToLanding,
-            onFeatures: LandingNavigation.goToLanding,
-            onPrivacy: LandingNavigation.openPrivacyPolicy,
-            onTerms: LandingNavigation.openTermsAndConditions,
-            onRefund: LandingNavigation.openRefundPolicy,
-            onDownload: LandingNavigation.openPlayStore,
-          ),
+          if (useHeroHeader)
+            LandingHeroHeaderBar(
+              activeNav: 'Home',
+              onNavLink: _onHeroNavLink,
+              onDownload: LandingNavigation.openPlayStore,
+            )
+          else
+            LandingNavBar(
+              active: activeNav,
+              onHome: LandingNavigation.goToLanding,
+              onAbout: LandingNavigation.goToLanding,
+              onFeatures: LandingNavigation.goToLanding,
+              onPrivacy: LandingNavigation.openPrivacyPolicy,
+              onTerms: LandingNavigation.openTermsAndConditions,
+              onRefund: LandingNavigation.openRefundPolicy,
+              onDownload: LandingNavigation.openPlayStore,
+            ),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -245,6 +259,7 @@ class RefundPolicyPage extends StatelessWidget {
       activeNav: 'Refund & Cancellation Policy',
       route: AppRoutes.refundPolicy,
       sections: refundAndCancellationPolicySections,
+      useHeroHeader: true,
     );
   }
 }

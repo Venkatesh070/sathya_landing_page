@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sathya_landing/core/theme/app_typography.dart';
 import 'package:sathya_landing/features/landing/presentation/landing_colors.dart';
 import 'package:sathya_landing/features/landing/presentation/landing_navigation.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_animations.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_chrome.dart';
+import 'package:sathya_landing/features/landing/presentation/widgets/landing_hero_header.dart';
 
 class SathyaLandingPage extends StatefulWidget {
   const SathyaLandingPage({super.key});
@@ -23,22 +25,122 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
 
   String _activeNav = 'Home';
 
+  static const _navSections = <(String, String)>[
+    ('Home', 'home'),
+    ('About', 'about'),
+    ('Core Features', 'features'),
+    ('Ayurveda', 'ayurveda'),
+    ('How the Store Works', 'store'),
+    ('Ready to Deepen Your Practice?', 'cta'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateActiveSection);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateActiveSection();
+      _scrollToPendingSection();
+    });
+  }
+
+  void _scrollToPendingSection() {
+    final args = Get.arguments;
+    if (args is! Map) return;
+    final section = args['section'];
+    if (section is! String) return;
+
+    void scheduleScroll([int attempt = 0]) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        final hasTarget = switch (section) {
+          'Home' => _homeKey.currentContext != null,
+          'About' || 'About Us' => _aboutKey.currentContext != null,
+          'Features' || 'Core Features' => _featuresKey.currentContext != null,
+          'Ayurveda' || 'Ayurveda for Better Living' =>
+            _catalogueKey.currentContext != null,
+          'How the Store Works' || 'How store works' =>
+            _storeWorksKey.currentContext != null,
+          'Ready to Deepen Your Practice?' => _ctaKey.currentContext != null,
+          _ => false,
+        };
+
+        if (hasTarget) {
+          _scrollToSection(section);
+          return;
+        }
+        if (attempt < 12) {
+          scheduleScroll(attempt + 1);
+        }
+      });
+    }
+
+    scheduleScroll();
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_updateActiveSection);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  GlobalKey _keyForSection(String id) {
+    return switch (id) {
+      'home' => _homeKey,
+      'about' => _aboutKey,
+      'features' => _featuresKey,
+      'ayurveda' => _catalogueKey,
+      'store' => _storeWorksKey,
+      'cta' => _ctaKey,
+      _ => _homeKey,
+    };
+  }
+
+  double _scrollAnchor(BuildContext context) {
+    return MediaQuery.paddingOf(context).top + 24;
+  }
+
+  void _updateActiveSection() {
+    if (!_scrollController.hasClients || !mounted) return;
+
+    final anchor = _scrollAnchor(context);
+
+    var active = _navSections.first.$1;
+    for (final (label, id) in _navSections) {
+      final ctx = _keyForSection(id).currentContext;
+      if (ctx == null) continue;
+      final box = ctx.findRenderObject();
+      if (box is! RenderBox || !box.hasSize) continue;
+
+      final top = box.localToGlobal(Offset.zero).dy;
+      if (top <= anchor) {
+        active = label;
+      }
+    }
+
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 32) {
+      active = _navSections.last.$1;
+    }
+
+    if (active != _activeNav) {
+      setState(() => _activeNav = active);
+    }
   }
 
   void _scrollTo(GlobalKey key, String label) {
     setState(() => _activeNav = label);
     final ctx = key.currentContext;
     if (ctx == null) return;
+
     Scrollable.ensureVisible(
       ctx,
       duration: const Duration(milliseconds: 450),
       curve: Curves.easeInOut,
       alignment: 0,
-    );
+    ).whenComplete(_updateActiveSection);
   }
 
   void _scrollToSection(String label) {
@@ -186,7 +288,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _HeroNavBar(
+                    LandingHeroNavBar(
                       wide: wide,
                       activeNav: activeNav,
                       onNavLink: onNavLink,
@@ -260,245 +362,19 @@ class _LandingHeaderHeroSection extends StatelessWidget {
                       color: Colors.white,
                       size: 28,
                     ),
-                    onTap: onDownload,
+                    onTap: LandingNavigation.openAppStore,
                   ),
                   LandingStoreBadge(
                     label: 'GET IT ON',
                     store: 'Google Play',
                     leading: const LandingPlayStoreIcon(),
-                    onTap: onDownload,
+                    onTap: LandingNavigation.openPlayStore,
                   ),
                 ],
               ),
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _HeroNavBar extends StatelessWidget {
-  const _HeroNavBar({
-    required this.wide,
-    required this.activeNav,
-    required this.onNavLink,
-    required this.onDownload,
-  });
-
-  final bool wide;
-  final String activeNav;
-  final void Function(String label) onNavLink;
-  final VoidCallback onDownload;
-
-  static const _heroLinks = [
-    'Home',
-    'About',
-    'Core Features',
-    'Ayurveda',
-    'How the Store Works',
-    'Ready to Deepen Your Practice?',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    if (wide) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Image.asset(
-                  'assets/images/logoWhite.png',
-                  height: 48,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var i = 0; i < _heroLinks.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 22),
-                  _HeroNavLink(
-                    label: _heroLinks[i],
-                    isActive: _isNavActive(activeNav, _heroLinks[i]),
-                    onTap: () => onNavLink(_heroLinks[i]),
-                  ),
-                ],
-              ],
-            ),
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Wrap(
-                  spacing: 10,
-                  children: [
-                    _CompactStoreBadge(
-                      label: 'Download on the',
-                      store: 'App Store',
-                      leading: const Icon(
-                        Icons.apple_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onTap: onDownload,
-                    ),
-                    _CompactStoreBadge(
-                      label: 'GET IT ON',
-                      store: 'Google Play',
-                      leading: const LandingPlayStoreIcon(size: 20),
-                      onTap: onDownload,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Image.asset('assets/images/logoWhite.png', height: 40),
-              const Spacer(),
-              _CompactStoreBadge(
-                label: 'GET IT ON',
-                store: 'Google Play',
-                leading: const LandingPlayStoreIcon(size: 20),
-                onTap: onDownload,
-              ),
-            ],
-          ),
-        ),
-        Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (final link in _heroLinks) ...[
-                  _HeroNavLink(
-                    label: link,
-                    isActive: _isNavActive(activeNav, link),
-                    onTap: () => onNavLink(link),
-                  ),
-                  const SizedBox(width: 20),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static bool _isNavActive(String activeNav, String link) {
-    return switch (link) {
-      'About' => activeNav == 'About',
-      'Core Features' => activeNav == 'Core Features' || activeNav == 'Features',
-      'Ayurveda' => activeNav == 'Ayurveda',
-      'How the Store Works' =>
-        activeNav == 'How the Store Works' || activeNav == 'How store works',
-      _ => activeNav == link,
-    };
-  }
-}
-
-class _HeroNavLink extends StatelessWidget {
-  const _HeroNavLink({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Text(
-          label,
-          style: AppTypography.inter(
-            fontSize: 15,
-            fontWeight: isActive ? FontWeight.w800 : FontWeight.w400,
-            color: isActive
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.90),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CompactStoreBadge extends StatelessWidget {
-  const _CompactStoreBadge({
-    required this.label,
-    required this.store,
-    required this.leading,
-    required this.onTap,
-  });
-
-  final String label;
-  final String store;
-  final Widget leading;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.white24),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              leading,
-              const SizedBox(width: 6),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppTypography.inter(
-                      fontSize: 7,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  Text(
-                    store,
-                    style: AppTypography.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -588,7 +464,7 @@ class _AboutSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          'At Sathya, we are dedicated to preserving and sharing the timeless wisdom of Vedic traditions. Our mission is to make authentic spiritual practices accessible to everyone — combining ancient knowledge with modern technology.\n\nWe believe that spirituality should fit seamlessly into contemporary life. Whether you are performing your first ritual or deepening a lifelong practice, Sathya provides the tools, guidance, and community to support your journey — every single day.',
+          'Through Sathya, we are dedicated to preserving and sharing the timeless wisdom of Vedic traditions. Our mission is to make authentic spiritual practices accessible to everyone — combining ancient knowledge with modern technology.\n\nWe believe that spirituality should fit seamlessly into contemporary life. Whether you are performing your first ritual or deepening a lifelong practice, The Sathya App provides the tools, guidance, and community to support your journey — every single day.',
           style: AppTypography.inter(
             fontSize: 15,
             height: 1.65,
@@ -1540,7 +1416,7 @@ class _DownloadCtaSection extends StatelessWidget {
                             color: Colors.white,
                             size: 28,
                           ),
-                          onTap: LandingNavigation.openPlayStore,
+                          onTap: LandingNavigation.openAppStore,
                         ),
                         LandingStoreBadge(
                           label: 'GET IT ON',

@@ -14,6 +14,7 @@ class LandingNavBar extends StatelessWidget {
     required this.onTerms,
     required this.onRefund,
     required this.onDownload,
+    this.onOpenDrawer,
   });
 
   final String active;
@@ -24,6 +25,7 @@ class LandingNavBar extends StatelessWidget {
   final VoidCallback onTerms;
   final VoidCallback onRefund;
   final VoidCallback onDownload;
+  final VoidCallback? onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +48,11 @@ class LandingNavBar extends StatelessWidget {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: wide ? 40 : 16,
-                vertical: 12,
+              padding: EdgeInsets.only(
+                left: wide ? 40 : 16,
+                right: wide ? 40 : 16,
+                top: 12,
+                bottom: 12,
               ),
               child: Row(
                 children: [
@@ -76,8 +80,15 @@ class LandingNavBar extends StatelessWidget {
                       const SizedBox(width: 18),
                     ],
                   ],
-                  if (!wide) const Spacer(),
-                  LandingDownloadNavButton(onTap: onDownload, compact: !wide),
+                  if (!wide) ...[
+                    const Spacer(),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+                      onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -353,13 +364,13 @@ class LandingFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _aboutSathya(wide: wide),
-        const SizedBox(height: 56),
+        const SizedBox(height: 28),
         _address(wide: wide),
-        const SizedBox(height: 56),
+        const SizedBox(height: 28),
         _contactUs(wide: wide),
-        const SizedBox(height: 56),
+        const SizedBox(height: 28),
         _quickLinksSection(wide: wide),
-        const SizedBox(height: 48),
+        const SizedBox(height: 28),
         _downloadApp(wide: wide, stackBadges: true),
       ],
     );
@@ -677,6 +688,192 @@ class LandingStoreBadge extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class LandingMobileDrawer extends StatelessWidget {
+  const LandingMobileDrawer({
+    super.key,
+    required this.activeNav,
+    required this.onNavLink,
+  });
+
+  final String activeNav;
+  final void Function(String label) onNavLink;
+
+  static const mainNavLinks = [
+    'Home',
+    'About',
+    'Core Features',
+    'Ayurveda',
+    'How the Store Works',
+    'Ready to Deepen Your Practice?',
+  ];
+
+  static const policyLinks = [
+    'Privacy Policy',
+    'Terms & Conditions',
+    'Refund & Cancellation Policy',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: LandingColors.headerFooterBg,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+              child: Row(
+                children: [
+                  Image.asset('assets/images/logoWhite.png', height: 40),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Sathya',
+                    style: AppTypography.lora(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: Colors.white24, height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                children: [
+                  for (final link in mainNavLinks)
+                    _drawerTile(
+                      context,
+                      label: link,
+                      isActive: activeNav == link ||
+                          (link == 'Core Features' && (activeNav == 'Features' || activeNav == 'Core Features')) ||
+                          (link == 'How the Store Works' && (activeNav == 'store' || activeNav == 'How the Store Works')),
+                    ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Divider(color: Colors.white24, height: 1),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16, bottom: 8),
+                    child: Text(
+                      'POLICIES & LEGAL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white54,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  for (final link in policyLinks)
+                    _drawerTile(
+                      context,
+                      label: link,
+                      isActive: activeNav == link,
+                    ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Divider(color: Colors.white24, height: 1),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'DOWNLOAD APP',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white54,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        LandingStoreBadge(
+                          label: 'Download on the',
+                          store: 'App Store',
+                          leading: const Icon(
+                            Icons.apple_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            LandingNavigation.openAppStore();
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        LandingStoreBadge(
+                          label: 'GET IT ON',
+                          store: 'Google Play',
+                          leading: const LandingPlayStoreIcon(size: 24),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            LandingNavigation.openPlayStore();
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              LandingNavigation.openAdminSignIn();
+                            },
+                            child: Text(
+                              'Admin sign in →',
+                              style: AppTypography.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerTile(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+  }) {
+    return ListTile(
+      dense: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      tileColor: isActive ? Colors.white.withValues(alpha: 0.15) : null,
+      title: Text(
+        label,
+        style: AppTypography.inter(
+          fontSize: 15,
+          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+          color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.85),
+        ),
+      ),
+      onTap: () {
+        Navigator.of(context).pop();
+        onNavLink(label);
+      },
     );
   }
 }

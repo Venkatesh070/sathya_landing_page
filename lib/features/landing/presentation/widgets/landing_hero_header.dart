@@ -9,6 +9,7 @@ class LandingHeroHeaderBar extends StatelessWidget {
     required this.activeNav,
     required this.onNavLink,
     required this.onDownload,
+    this.onOpenDrawer,
   });
 
   static const _headerBg = 'assets/images/home/landingHeaderbgImg.png';
@@ -17,17 +18,18 @@ class LandingHeroHeaderBar extends StatelessWidget {
   final String activeNav;
   final void Function(String label) onNavLink;
   final VoidCallback onDownload;
+  final VoidCallback? onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 960;
+    final wide = MediaQuery.sizeOf(context).width >= 1150;
     final width = MediaQuery.sizeOf(context).width;
 
     return SafeArea(
       bottom: false,
       child: SizedBox(
         width: double.infinity,
-        height: wide ? 104 : 132,
+        height: wide ? 104 : 76,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -48,16 +50,19 @@ class LandingHeroHeaderBar extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: wide ? 48 : 28,
-                right: wide ? 30 : 16,
-              ),
-              child: LandingHeroNavBar(
-                wide: wide,
-                activeNav: activeNav,
-                onNavLink: onNavLink,
-                onDownload: onDownload,
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: wide ? 48 : 16,
+                  right: wide ? 30 : 16,
+                ),
+                child: LandingHeroNavBar(
+                  wide: wide,
+                  activeNav: activeNav,
+                  onNavLink: onNavLink,
+                  onDownload: onDownload,
+                  onOpenDrawer: onOpenDrawer,
+                ),
               ),
             ),
           ],
@@ -74,12 +79,14 @@ class LandingHeroNavBar extends StatelessWidget {
     required this.activeNav,
     required this.onNavLink,
     required this.onDownload,
+    this.onOpenDrawer,
   });
 
   final bool wide;
   final String activeNav;
   final void Function(String label) onNavLink;
   final VoidCallback onDownload;
+  final VoidCallback? onOpenDrawer;
 
   static const heroLinks = [
     'Home',
@@ -95,108 +102,91 @@ class LandingHeroNavBar extends StatelessWidget {
     if (wide) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Image.asset(
-                    'assets/images/logoWhite.png',
-                    height: 48,
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: constraints.maxWidth - 320,
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (var i = 0; i < heroLinks.length; i++) ...[
-                              if (i > 0) const SizedBox(width: 22),
-                              LandingHeroNavLink(
-                                label: heroLinks[i],
-                                isActive: isNavActive(activeNav, heroLinks[i]),
-                                onTap: () => onNavLink(heroLinks[i]),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
+        child: Row(
+          children: [
+            Image.asset(
+              'assets/images/logoWhite.png',
+              height: 44,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      LandingCompactStoreBadge(
-                        label: 'Download on the',
-                        store: 'App Store',
-                        leading: const Icon(
-                          Icons.apple_rounded,
-                          color: Colors.white,
-                          size: 20,
+                      for (var i = 0; i < heroLinks.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 18),
+                        LandingHeroNavLink(
+                          label: heroLinks[i],
+                          isActive: isNavActive(activeNav, heroLinks[i]),
+                          onTap: () => onNavLink(heroLinks[i]),
                         ),
-                        onTap: LandingNavigation.openAppStore,
-                      ),
-                      const SizedBox(width: 10),
-                      LandingCompactStoreBadge(
-                        label: 'GET IT ON',
-                        store: 'Google Play',
-                        leading: const LandingPlayStoreIcon(size: 20),
-                        onTap: LandingNavigation.openPlayStore,
-                      ),
+                      ],
                     ],
                   ),
                 ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LandingCompactStoreBadge(
+                  label: 'Download on the',
+                  store: 'App Store',
+                  leading: const Icon(
+                    Icons.apple_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onTap: LandingNavigation.openAppStore,
+                ),
+                const SizedBox(width: 8),
+                LandingCompactStoreBadge(
+                  label: 'GET IT ON',
+                  store: 'Google Play',
+                  leading: const LandingPlayStoreIcon(size: 20),
+                  onTap: LandingNavigation.openPlayStore,
+                ),
               ],
-            );
-          },
+            ),
+          ],
         ),
       );
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Image.asset('assets/images/logoWhite.png', height: 40),
-            ],
-          ),
-        ),
-        Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (final link in heroLinks) ...[
-                  LandingHeroNavLink(
-                    label: link,
-                    isActive: isNavActive(activeNav, link),
-                    onTap: () => onNavLink(link),
-                  ),
-                  const SizedBox(width: 20),
-                ],
-              ],
+    return SizedBox(
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Image.asset('assets/images/logoWhite.png', height: 38),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                'Sathya',
+                style: AppTypography.lora(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
+            const Spacer(),
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

@@ -96,8 +96,15 @@ class LandingPolicyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 720;
+    final scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: LandingColors.cream,
+      endDrawer: LandingMobileDrawer(
+        activeNav: activeNav,
+        onNavLink: _onLink,
+      ),
       body: Column(
         children: [
           if (useHeroHeader)
@@ -105,6 +112,7 @@ class LandingPolicyPage extends StatelessWidget {
               activeNav: 'Home',
               onNavLink: _onHeroNavLink,
               onDownload: LandingNavigation.openPlayStore,
+              onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
             )
           else
             LandingNavBar(
@@ -116,6 +124,7 @@ class LandingPolicyPage extends StatelessWidget {
               onTerms: LandingNavigation.openTermsAndConditions,
               onRefund: LandingNavigation.openRefundPolicy,
               onDownload: LandingNavigation.openPlayStore,
+              onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
             ),
           Expanded(
             child: SingleChildScrollView(
@@ -123,8 +132,8 @@ class LandingPolicyPage extends StatelessWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: wide ? 56 : 24,
-                      vertical: 32,
+                      horizontal: wide ? 56 : 16,
+                      vertical: wide ? 32 : 20,
                     ),
                     child: Center(
                       child: ConstrainedBox(
@@ -135,15 +144,15 @@ class LandingPolicyPage extends StatelessWidget {
                             Text(
                               title,
                               style: AppTypography.lora(
-                                fontSize: wide ? 32 : 26,
+                                fontSize: wide ? 32 : 24,
                                 fontWeight: FontWeight.w700,
                                 color: LandingColors.burgundy,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 20),
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(28),
+                              padding: EdgeInsets.all(wide ? 28 : 18),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),

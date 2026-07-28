@@ -15,6 +15,7 @@ class SathyaLandingPage extends StatefulWidget {
 }
 
 class _SathyaLandingPageState extends State<SathyaLandingPage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _scrollController = ScrollController();
   final _homeKey = GlobalKey();
   final _aboutKey = GlobalKey();
@@ -215,7 +216,12 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: LandingColors.sectionStoreWorks,
+      endDrawer: LandingMobileDrawer(
+        activeNav: _activeNav,
+        onNavLink: _scrollToSection,
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -227,6 +233,7 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
                   activeNav: _activeNav,
                   onNavLink: _scrollToSection,
                   onDownload: LandingNavigation.openPlayStore,
+                  onOpenDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
                 ),
                 LandingScrollReveal(
                   scrollController: _scrollController,
@@ -288,6 +295,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
     required this.activeNav,
     required this.onNavLink,
     required this.onDownload,
+    this.onOpenDrawer,
   });
 
   static const _headerBg = 'assets/images/home/landingHeaderbgImg.png';
@@ -297,75 +305,87 @@ class _LandingHeaderHeroSection extends StatelessWidget {
   final String activeNav;
   final void Function(String label) onNavLink;
   final VoidCallback onDownload;
+  final VoidCallback? onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 960;
+    final wide = MediaQuery.sizeOf(context).width >= 1150;
     final width = MediaQuery.sizeOf(context).width;
-    final sectionHeight = wide ? width * 0.52 : width * 0.95;
+    final minHeroHeight = wide ? 520.0 : (width < 400 ? 440.0 : 480.0);
 
     return Container(
       key: sectionKey,
       width: double.infinity,
       color: LandingColors.sectionStoreWorks,
-      child: SizedBox(
-        height: sectionHeight.clamp(520, 720),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                _headerBg,
-                fit: BoxFit.fill,
-                alignment: Alignment.topCenter,
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Opacity(
-                  opacity: 0.42,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SizedBox(
+            height: wide ? (width * 0.52).clamp(520.0, 720.0) : minHeroHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
                   child: Image.asset(
-                    _flower,
-                    width: wide ? width * 0.48 : width * 0.72,
-                    fit: BoxFit.contain,
+                    _headerBg,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   ),
                 ),
-              ),
-            ),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: wide ? 48 : 28,
-                  right: wide ? 30 : 16,
-                ),
-                child: Column(
-                  children: [
-                    LandingHeroNavBar(
-                      wide: wide,
-                      activeNav: activeNav,
-                      onNavLink: onNavLink,
-                      onDownload: onDownload,
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Opacity(
+                      opacity: 0.42,
+                      child: Image.asset(
+                        _flower,
+                        width: wide ? width * 0.48 : width * 0.72,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    Expanded(child: _heroContent(wide)),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned.fill(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: wide ? 48 : 16,
+                        right: wide ? 30 : 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          LandingHeroNavBar(
+                            wide: wide,
+                            activeNav: activeNav,
+                            onNavLink: onNavLink,
+                            onDownload: onDownload,
+                            onOpenDrawer: onOpenDrawer,
+                          ),
+                          Expanded(child: _heroContent(context, wide)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _heroContent(bool wide) {
+  Widget _heroContent(BuildContext context, bool wide) {
+    final width = MediaQuery.sizeOf(context).width;
+    final titleFontSize = wide ? 48.0 : (width < 400 ? 24.0 : 28.0);
+
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: wide ? 80 : 20,
-        vertical: wide ? 24 : 16,
+        horizontal: wide ? 80 : 16,
+        vertical: wide ? 24 : 12,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -376,26 +396,26 @@ class _LandingHeaderHeroSection extends StatelessWidget {
               'Align Your Daily Life with Vedic Wisdom.',
               textAlign: TextAlign.center,
               style: AppTypography.lora(
-                fontSize: wide ? 48 : 32,
-                height: 1.15,
+                fontSize: titleFontSize,
+                height: 1.18,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
             ),
           ),
-          SizedBox(height: wide ? 20 : 14),
+          SizedBox(height: wide ? 20 : 12),
           LandingStaggerIn(
             delay: const Duration(milliseconds: 280),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: wide ? 720 : 400),
+              constraints: BoxConstraints(maxWidth: wide ? 720 : 420),
               child: Text(
                 'Bring structure, mindfulness, and authenticity to your '
                 'spiritual routine with a smart ritual calendar and premium, '
                 'curated Puja Kits and Ayurveda products delivered straight to your door.',
                 textAlign: TextAlign.center,
                 style: AppTypography.inter(
-                  fontSize: wide ? 16 : 14,
-                  height: 1.65,
+                  fontSize: wide ? 16 : 13.5,
+                  height: 1.6,
                   color: Colors.white.withValues(alpha: 0.95),
                 ),
               ),
@@ -415,13 +435,14 @@ class _AboutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
+
     return Container(
       key: sectionKey,
       width: double.infinity,
       color: LandingColors.sectionStoreWorks,
       padding: EdgeInsets.symmetric(
-        horizontal: wide ? 56 : 24,
-        vertical: 64,
+        horizontal: wide ? 56 : 20,
+        vertical: wide ? 64 : 40,
       ),
       child: wide
           ? Row(
@@ -437,7 +458,7 @@ class _AboutSection extends StatelessWidget {
                 Expanded(
                   child: LandingScaleIn(
                     delay: const Duration(milliseconds: 200),
-                    child: _aboutIllustration(),
+                    child: _aboutIllustration(context),
                   ),
                 ),
               ],
@@ -445,14 +466,11 @@ class _AboutSection extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.only(left: wide ? 16 : 0),
-                  child: _aboutCopy(),
-                ),
-                const SizedBox(height: 32),
+                _aboutCopy(),
+                const SizedBox(height: 24),
                 LandingScaleIn(
                   delay: const Duration(milliseconds: 200),
-                  child: _aboutIllustration(),
+                  child: _aboutIllustration(context),
                 ),
               ],
             ),
@@ -463,22 +481,13 @@ class _AboutSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '',
-          style: AppTypography.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: LandingColors.gold,
-          ).copyWith(letterSpacing: 1.5),
-        ),
-        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: Text(
-                'Preserving Tradition,Embracing the Present',
+                'Preserving Tradition, Embracing the Present',
                 style: AppTypography.lora(
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: LandingColors.burgundy,
                   height: 1.25,
@@ -489,12 +498,12 @@ class _AboutSection extends StatelessWidget {
             Icon(Icons.spa_outlined, color: LandingColors.gold, size: 28),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Text(
           'Through Sathya, we are dedicated to preserving and sharing the timeless wisdom of Vedic traditions. Our mission is to make authentic spiritual practices accessible to everyone — combining ancient knowledge with modern technology.\n\nWe believe that spirituality should fit seamlessly into contemporary life. Whether you are performing your first ritual or deepening a lifelong practice, The Sathya App provides the tools, guidance, and community to support your journey — every single day.',
           style: AppTypography.inter(
-            fontSize: 15,
-            height: 1.65,
+            fontSize: 14.5,
+            height: 1.6,
             color: LandingColors.textBody,
           ),
         ),
@@ -502,21 +511,27 @@ class _AboutSection extends StatelessWidget {
     );
   }
 
-  Widget _aboutIllustration() {
+  Widget _aboutIllustration(BuildContext context) {
+    final wide = MediaQuery.sizeOf(context).width >= 900;
+    final width = MediaQuery.sizeOf(context).width;
+    final h = wide ? 320.0 : (width < 400 ? 200.0 : 240.0);
+    final sunSize = wide ? 220.0 : (width < 400 ? 150.0 : 180.0);
+    final yogaSize = wide ? 280.0 : (width < 400 ? 180.0 : 210.0);
+
     return Container(
-      height: 320,
+      height: h,
       alignment: Alignment.center,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Icon(
             Icons.wb_sunny_outlined,
-            size: 220,
+            size: sunSize,
             color: LandingColors.gold.withValues(alpha: 0.18),
           ),
           Image.asset(
             'assets/images/yoga.png',
-            height: 280,
+            height: yogaSize,
             fit: BoxFit.contain,
           ),
         ],
@@ -711,42 +726,48 @@ class _CoreFeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayTitle = showTitleColon ? '$title:' : title;
-    return SizedBox(
-      height: _CoreFeaturesStaggeredGrid._cardHeight,
-      width: double.infinity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: LandingColors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x144A2C2A),
-              blurRadius: 14,
-              offset: Offset(0, 5),
-            ),
-          ],
+    final wide = MediaQuery.sizeOf(context).width >= 900;
+
+    final cardContent = DecoratedBox(
+      decoration: BoxDecoration(
+        color: LandingColors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x144A2C2A),
+            blurRadius: 14,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          wide ? 28 : 20,
+          wide ? 30 : 20,
+          wide ? 28 : 20,
+          wide ? 28 : 20,
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 30, 28, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                icon,
-                size: 30,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: wide ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: wide ? 30 : 26,
+              color: LandingColors.burgundy,
+            ),
+            SizedBox(height: wide ? 18 : 12),
+            Text(
+              displayTitle,
+              style: AppTypography.lora(
+                fontSize: wide ? 18 : 16,
+                fontWeight: FontWeight.w700,
                 color: LandingColors.burgundy,
+                height: 1.2,
               ),
-              const SizedBox(height: 18),
-              Text(
-                displayTitle,
-                style: AppTypography.lora(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: LandingColors.burgundy,
-                  height: 1.2,
-                ),
-              ),
-              const SizedBox(height: 12),
+            ),
+            SizedBox(height: wide ? 12 : 8),
+            if (wide)
               Expanded(
                 child: Text(
                   body,
@@ -756,11 +777,33 @@ class _CoreFeatureCard extends StatelessWidget {
                     color: LandingColors.textBody,
                   ),
                 ),
+              )
+            else
+              Text(
+                body,
+                style: AppTypography.inter(
+                  fontSize: 13,
+                  height: 1.6,
+                  color: LandingColors.textBody,
+                ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
+    );
+
+    if (wide) {
+      return SizedBox(
+        height: _CoreFeaturesStaggeredGrid._cardHeight,
+        width: double.infinity,
+        child: cardContent,
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 150),
+      child: cardContent,
     );
   }
 }
@@ -1091,10 +1134,12 @@ class _CataloguePromoSection extends StatelessWidget {
   }
 
   Widget _narrowTopColumn(BuildContext context, bool wide) {
+    final width = MediaQuery.sizeOf(context).width;
+    final imgHeight = width < 400 ? 180.0 : 220.0;
     return Column(
       children: [
-        _promoImage(height: 260),
-        const SizedBox(height: 28),
+        _promoImage(height: imgHeight),
+        const SizedBox(height: 20),
         _promoCopy(context, wide),
       ],
     );
@@ -1350,6 +1395,7 @@ class _DownloadCtaSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
+    final width = MediaQuery.sizeOf(context).width;
 
     return Container(
       key: sectionKey,
@@ -1364,7 +1410,7 @@ class _DownloadCtaSection extends StatelessWidget {
             top: wide ? 24 : 40,
             child: Opacity(
               opacity: 0.1,
-              child: Image.asset(_mandalaAsset, width: wide ? 200 : 140),
+              child: Image.asset(_mandalaAsset, width: wide ? 200 : 120),
             ),
           ),
           Positioned(
@@ -1372,7 +1418,7 @@ class _DownloadCtaSection extends StatelessWidget {
             top: wide ? 24 : 40,
             child: Opacity(
               opacity: 0.1,
-              child: Image.asset(_mandalaAsset, width: wide ? 200 : 140),
+              child: Image.asset(_mandalaAsset, width: wide ? 200 : 120),
             ),
           ),
           Positioned(
@@ -1385,15 +1431,15 @@ class _DownloadCtaSection extends StatelessWidget {
                 opacity: 0.08,
                 child: Image.asset(
                   _mandalaAsset,
-                  width: wide ? 220 : 160,
+                  width: wide ? 220 : 140,
                 ),
               ),
             ),
           ),
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: wide ? 56 : 24,
-              vertical: wide ? 128 : 96,
+              horizontal: wide ? 56 : 20,
+              vertical: wide ? 128 : 56,
             ),
             child: Center(
               child: ConstrainedBox(
@@ -1408,14 +1454,14 @@ class _DownloadCtaSection extends StatelessWidget {
                         'Ready to Deepen Your Practice?',
                         textAlign: TextAlign.center,
                         style: AppTypography.lora(
-                          fontSize: wide ? 36 : 28,
+                          fontSize: wide ? 36 : (width < 400 ? 24 : 28),
                           fontWeight: FontWeight.w700,
                           color: LandingColors.burgundy,
                           height: 1.2,
                         ),
                       ),
                     ),
-                    SizedBox(height: wide ? 28 : 24),
+                    SizedBox(height: wide ? 28 : 16),
                     SizedBox(
                       width: double.infinity,
                       child: Text(
@@ -1423,13 +1469,13 @@ class _DownloadCtaSection extends StatelessWidget {
                         'and bring authentic structure back to your daily rituals.',
                         textAlign: TextAlign.center,
                         style: AppTypography.inter(
-                          fontSize: wide ? 15 : 14,
-                          height: 1.65,
+                          fontSize: wide ? 15 : 13.5,
+                          height: 1.6,
                           color: LandingColors.textBody,
                         ),
                       ),
                     ),
-                    SizedBox(height: wide ? 52 : 44),
+                    SizedBox(height: wide ? 52 : 32),
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 14,

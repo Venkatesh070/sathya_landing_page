@@ -407,7 +407,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
           LandingStaggerIn(
             delay: const Duration(milliseconds: 280),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: wide ? 720 : 420),
+              constraints: BoxConstraints(maxWidth: wide ? 720 : 250),
               child: Text(
                 'Bring structure, mindfulness, and authenticity to your '
                 'spiritual routine with a smart ritual calendar and premium, '

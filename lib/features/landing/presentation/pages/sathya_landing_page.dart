@@ -309,7 +309,7 @@ class _LandingHeaderHeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 1150;
+    final wide = MediaQuery.sizeOf(context).width >= 900;
     final width = MediaQuery.sizeOf(context).width;
     final minHeroHeight = wide ? 520.0 : (width < 400 ? 440.0 : 480.0);
 
@@ -320,14 +320,14 @@ class _LandingHeaderHeroSection extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SizedBox(
-            height: wide ? (width * 0.52).clamp(520.0, 720.0) : minHeroHeight,
+            height: wide ? (width * 0.538).clamp(520.0, 780.0) : minHeroHeight,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 Positioned.fill(
                   child: Image.asset(
                     _headerBg,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     alignment: Alignment.topCenter,
                   ),
                 ),

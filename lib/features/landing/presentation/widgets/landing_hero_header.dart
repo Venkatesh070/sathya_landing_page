@@ -22,7 +22,7 @@ class LandingHeroHeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 1150;
+    final wide = MediaQuery.sizeOf(context).width >= 900;
     final width = MediaQuery.sizeOf(context).width;
 
     return SafeArea(
@@ -35,7 +35,7 @@ class LandingHeroHeaderBar extends StatelessWidget {
           children: [
             Image.asset(
               _headerBg,
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
               alignment: Alignment.topCenter,
             ),
             Positioned(
@@ -163,21 +163,24 @@ class LandingHeroNavBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Image.asset('assets/images/logoWhite.png', height: 38),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Sathya',
-                style: AppTypography.lora(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/images/logoWhite.png', height: 38),
+                const SizedBox(width: 8),
+                Text(
+                  'Sathya',
+                  style: AppTypography.lora(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                overflow: TextOverflow.ellipsis,
-              ),
+              ],
             ),
-            const Spacer(),
             IconButton(
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),

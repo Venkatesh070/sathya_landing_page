@@ -29,7 +29,7 @@ class LandingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 1100;
+    final wide = MediaQuery.sizeOf(context).width >= 900;
     final links = <(String, VoidCallback)>[
       ('Home', onHome),
       ('About', onAbout),

@@ -109,11 +109,6 @@ abstract final class LandingNavigation {
   static Future<void> openTermsAndConditions() =>
       openExternalUrl(landingTermsAndConditionsUrl);
 
-  static void openRefundPolicy() {
-    if (Get.currentRoute == AppRoutes.refundPolicy) return;
-    Get.toNamed(AppRoutes.refundPolicy);
-  }
-
   static Future<void> openAdminSignIn() async {
     final uri = Uri.parse(
      'https://admin.sathya.co.za',
@@ -175,10 +170,8 @@ abstract final class LandingNavigation {
         openPrivacyPolicy();
       case 'Terms & Conditions':
         openTermsAndConditions();
-      case 'Refund & Cancellation Policy':
-        if (currentRoute != AppRoutes.refundPolicy) {
-          openRefundPolicy();
-        }
+      case 'Donate':
+        Get.toNamed(AppRoutes.donate);
     }
   }
 }

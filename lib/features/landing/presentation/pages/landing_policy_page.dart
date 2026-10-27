@@ -13,60 +13,6 @@ class PolicySection {
   final String body;
 }
 
-const refundAndCancellationPolicySections = <PolicySection>[
-  PolicySection(
-    title: 'Order Cancellations',
-    body:
-        'Pre-Dispatch: A customer may request an order cancellation at any time '
-        'prior to the package being dispatched to our logistics partner, The '
-        'Courier Guy. If successfully cancelled before dispatch, a full refund '
-        'will be processed.\n\n'
-        'Post-Dispatch: Once an order has been picked up by the courier and a '
-        'waybill is generated, it can no longer be cancelled. The user must '
-        'follow the standard returns/replacements inquiry process upon arrival.',
-  ),
-  PolicySection(
-    title: 'Refund and Replacement Requests',
-    body:
-        'Administrative Review: All requests for refunds, cancellations, or '
-        'product replacements must be logged through the application or via our '
-        'official support channels.\n\n'
-        'Every request is subject to a manual internal verification process by '
-        'our administrative team. We review requests appropriately based on kit '
-        'completeness, damage during transit, or operational errors.\n\n'
-        'Approved refunds will be credited back via our payment gateway '
-        '(Paystack) to the original payment method used during checkout.\n\n'
-        'Users are required to report damaged, defective, missing, or incorrect '
-        'products within 48 hours of delivery along with relevant photographs '
-        'or supporting details where applicable.\n\n'
-        'Returned products, where applicable, must be unused and returned in '
-        'their original packaging.',
-  ),
-  PolicySection(
-    title: 'Non-Refundable Transactions',
-    body:
-        'Contributions made through the Platform are voluntary and generally '
-        'non-refundable.',
-  ),
-  PolicySection(
-    title: 'Refund Processing Timeline',
-    body:
-        'Approved refunds will be processed through the payment gateway provider '
-        '(Paystack) and credited to the original payment method used during '
-        'checkout.\n\n'
-        'Refund processing timelines may vary depending on the payment provider '
-        'or banking institution and may take approximately 7–14 business days to '
-        'reflect in the User’s account.',
-  ),
-  PolicySection(
-    title: 'Right to Reject Requests',
-    body:
-        'The Company reserves the right to reject refund, return, replacement, or '
-        'cancellation requests that do not comply with the conditions outlined in '
-        'this Policy or where misuse, abuse, or fraudulent activity is suspected.',
-  ),
-];
-
 class LandingPolicyPage extends StatelessWidget {
   const LandingPolicyPage({
     super.key,
@@ -122,7 +68,6 @@ class LandingPolicyPage extends StatelessWidget {
               onFeatures: LandingNavigation.goToLanding,
               onPrivacy: LandingNavigation.openPrivacyPolicy,
               onTerms: LandingNavigation.openTermsAndConditions,
-              onRefund: LandingNavigation.openRefundPolicy,
               onDownload: LandingNavigation.openPlayStore,
               onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
             ),
@@ -250,25 +195,13 @@ class TermsAndConditionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const LandingPolicyPage(
-      title: 'Refund and Cancellation Policy',
+      title: 'Terms & Conditions',
       activeNav: 'Terms & Conditions',
       route: AppRoutes.termsAndConditions,
-      sections: refundAndCancellationPolicySections,
-    );
-  }
-}
-
-class RefundPolicyPage extends StatelessWidget {
-  const RefundPolicyPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const LandingPolicyPage(
-      title: 'Refund and Cancellation Policy',
-      activeNav: 'Refund & Cancellation Policy',
-      route: AppRoutes.refundPolicy,
-      sections: refundAndCancellationPolicySections,
-      useHeroHeader: true,
+      body:
+          'This page will contain the full Sathya Application terms and '
+          'conditions. Contact support@sathya.co.za if you have questions about '
+          'our terms of use.',
     );
   }
 }

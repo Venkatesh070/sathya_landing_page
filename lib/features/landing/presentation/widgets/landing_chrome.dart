@@ -12,7 +12,6 @@ class LandingNavBar extends StatelessWidget {
     required this.onFeatures,
     required this.onPrivacy,
     required this.onTerms,
-    required this.onRefund,
     required this.onDownload,
     this.onOpenDrawer,
   });
@@ -23,7 +22,6 @@ class LandingNavBar extends StatelessWidget {
   final VoidCallback onFeatures;
   final VoidCallback onPrivacy;
   final VoidCallback onTerms;
-  final VoidCallback onRefund;
   final VoidCallback onDownload;
   final VoidCallback? onOpenDrawer;
 
@@ -36,7 +34,6 @@ class LandingNavBar extends StatelessWidget {
       ('Features', onFeatures),
       ('Privacy Policy', onPrivacy),
       ('Terms & Conditions', onTerms),
-      ('Refund & Cancellation Policy', onRefund),
     ];
 
     return Column(
@@ -214,9 +211,9 @@ class LandingFooter extends StatelessWidget {
 
   static const _quickLinks = [
     'Home',
+    'Donate',
     'Privacy Policy',
     'Terms & Conditions',
-    'Refund & Cancellation Policy',
   ];
 
   static const _maxContentWidth = 1280.0;
@@ -712,9 +709,9 @@ class LandingMobileDrawer extends StatelessWidget {
   ];
 
   static const policyLinks = [
+    'Donate',
     'Privacy Policy',
     'Terms & Conditions',
-    'Refund & Cancellation Policy',
   ];
 
   @override

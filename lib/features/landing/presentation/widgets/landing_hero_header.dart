@@ -241,6 +241,9 @@ class LandingHeroNavLink extends StatelessWidget {
         onTap: onTap,
         child: Text(
           label,
+          softWrap: false,
+          maxLines: 1,
+          overflow: TextOverflow.visible,
           style: AppTypography.inter(
             fontSize: 15,
             fontWeight: isActive ? FontWeight.w800 : FontWeight.w400,

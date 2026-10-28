@@ -538,43 +538,20 @@ class _DonationCard extends StatelessWidget {
                   color: _DonatePageState._muted,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
+              const _FieldLabel('Email', isRequired: true),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: emailCtrl,
                 enabled: !submitting,
                 keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
                 style: AppTypography.inter(
                   fontSize: 15,
                   color: _DonatePageState._ink,
                 ),
-                decoration: _fieldDecoration(
-                  label: Text.rich(
-                    TextSpan(
-                      text: 'Email ',
-                      style: AppTypography.inter(
-                        fontSize: 14,
-                        color: _DonatePageState._muted.withValues(alpha: 0.65),
-                      ),
-                      children: const [
-                        TextSpan(
-                          text: '*',
-                          style: TextStyle(
-                            color: Color(0xFFD32F2F),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' (required for PayFast receipt)',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            fontSize: 12.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                decoration: _fieldDecoration(hint: 'you@example.com'),
                 validator: (value) {
                   final v = (value ?? '').trim();
                   if (v.isEmpty) {
@@ -586,75 +563,74 @@ class _DonationCard extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: firstNameCtrl,
-                      enabled: !submitting,
-                      style: AppTypography.inter(
-                        fontSize: 15,
-                        color: _DonatePageState._ink,
-                      ),
-                      decoration: _fieldDecoration(
-                        label: Text.rich(
-                          TextSpan(
-                            text: 'First name ',
-                            style: AppTypography.inter(
-                              fontSize: 14,
-                              color:
-                                  _DonatePageState._muted.withValues(alpha: 0.65),
-                            ),
-                            children: const [
-                              TextSpan(
-                                text: '*',
-                                style: TextStyle(
-                                  color: Color(0xFFD32F2F),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _FieldLabel('First name', isRequired: true),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: firstNameCtrl,
+                          enabled: !submitting,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.givenName],
+                          style: AppTypography.inter(
+                            fontSize: 15,
+                            color: _DonatePageState._ink,
                           ),
+                          decoration: _fieldDecoration(hint: 'First name'),
+                          validator: (value) {
+                            final v = (value ?? '').trim();
+                            if (v.isEmpty) {
+                              return 'First name is required';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                      validator: (value) {
-                        final v = (value ?? '').trim();
-                        if (v.isEmpty) {
-                          return 'First name is required';
-                        }
-                        return null;
-                      },
+                      ],
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextFormField(
-                      controller: lastNameCtrl,
-                      enabled: !submitting,
-                      style: AppTypography.inter(
-                        fontSize: 15,
-                        color: _DonatePageState._ink,
-                      ),
-                      decoration:
-                          _fieldDecoration(hint: 'Last name (optional)'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _FieldLabel('Last name'),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: lastNameCtrl,
+                          enabled: !submitting,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.familyName],
+                          style: AppTypography.inter(
+                            fontSize: 15,
+                            color: _DonatePageState._ink,
+                          ),
+                          decoration: _fieldDecoration(hint: 'Last name'),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
+              const _FieldLabel('Notes'),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: noteCtrl,
                 enabled: !submitting,
                 maxLines: 2,
                 maxLength: 280,
+                textInputAction: TextInputAction.done,
                 style: AppTypography.inter(
                   fontSize: 15,
                   color: _DonatePageState._ink,
                 ),
-                decoration: _fieldDecoration(hint: 'Note (optional)'),
+                decoration: _fieldDecoration(hint: 'Optional message'),
               ),
               if (submitError != null) ...[
                 const SizedBox(height: 4),
@@ -686,7 +662,7 @@ class _DonationCard extends StatelessWidget {
                           ),
                         )
                       : Text(
-                          'Continue to Secure Payment',
+                          'Continue',
                           style: AppTypography.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -696,31 +672,6 @@ class _DonationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Icon(
-                      Icons.lock_rounded,
-                      size: 15,
-                      color: Color(0xFF7E6C5F),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Secure payment processed by PayFast. Card details are '
-                      'handled by our payment provider.',
-                      style: AppTypography.inter(
-                        fontSize: 12.5,
-                        height: 1.45,
-                        color: const Color(0xFF7E6C5F),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -728,11 +679,9 @@ class _DonationCard extends StatelessWidget {
     );
   }
 
-  InputDecoration _fieldDecoration({String? hint, Widget? label}) {
+  InputDecoration _fieldDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      label: label,
-      floatingLabelBehavior: FloatingLabelBehavior.never,
       hintStyle: AppTypography.inter(
         fontSize: 14,
         color: _DonatePageState._muted.withValues(alpha: 0.55),
@@ -900,6 +849,37 @@ class _DecorativeLotusDivider extends StatelessWidget {
           color: const Color(0xFFC89B66),
         ),
       ],
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text, {this.isRequired = false});
+
+  final String text;
+  final bool isRequired;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        text: text,
+        style: AppTypography.inter(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: _DonatePageState._muted,
+        ),
+        children: [
+          if (isRequired)
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(
+                color: Color(0xFFD32F2F),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -102,14 +102,16 @@ class LandingNavBar extends StatelessWidget {
       color: LandingColors.headerFooterBg,
       elevation: 2,
       shadowColor: Colors.black.withValues(alpha: 0.18),
+      clipBehavior: Clip.none,
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: wide ? 40 : 16,
-            vertical: 12,
+            horizontal: wide ? 28 : 16,
+            vertical: 14,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               MouseRegion(
                 cursor: SystemMouseCursors.click,
@@ -122,6 +124,7 @@ class LandingNavBar extends StatelessWidget {
                       const SizedBox(width: 10),
                       Text(
                         'Sathya',
+                        softWrap: false,
                         style: AppTypography.lora(
                           fontSize: wide ? 22 : 19,
                           fontWeight: FontWeight.w700,
@@ -133,16 +136,37 @@ class LandingNavBar extends StatelessWidget {
                 ),
               ),
               if (wide) ...[
-                const Spacer(),
-                for (var i = 0; i < navItems.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 14),
-                  LandingNavLink(
-                    label: navItems[i],
-                    isActive: _isLinkActive(navItems[i]),
-                    onTap: () => _handleNav(navItems[i]),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        clipBehavior: Clip.none,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: constraints.maxWidth,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              for (var i = 0; i < navItems.length; i++) ...[
+                                if (i > 0) const SizedBox(width: 20),
+                                LandingNavLink(
+                                  label: navItems[i],
+                                  isActive: _isLinkActive(navItems[i]),
+                                  onTap: () => _handleNav(navItems[i]),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-                const Spacer(),
+                ),
+                const SizedBox(width: 12),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -152,7 +176,7 @@ class LandingNavBar extends StatelessWidget {
                       leading: const Icon(
                         Icons.apple_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 18,
                       ),
                       onTap: LandingNavigation.openAppStore,
                     ),
@@ -160,7 +184,7 @@ class LandingNavBar extends StatelessWidget {
                     LandingCompactStoreBadge(
                       label: 'GET IT ON',
                       store: 'Google Play',
-                      leading: const LandingPlayStoreIcon(size: 20),
+                      leading: const LandingPlayStoreIcon(size: 18),
                       onTap: LandingNavigation.openPlayStore,
                     ),
                   ],
@@ -261,7 +285,17 @@ class _LandingNavLinkState extends State<LandingNavLink> {
   @override
   Widget build(BuildContext context) {
     final showUnderline = widget.isActive || _isHovered;
+    final baseStyle = AppTypography.inter(
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+      color: showUnderline
+          ? Colors.white
+          : Colors.white.withValues(alpha: 0.88),
+      height: 1.25,
+    );
 
+    // Avoid IntrinsicWidth — on Flutter web it under-measures glyph width and
+    // clips the last character of each label.
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
@@ -270,35 +304,19 @@ class _LandingNavLinkState extends State<LandingNavLink> {
         onTap: widget.onTap,
         behavior: HitTestBehavior.opaque,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          child: IntrinsicWidth(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  widget.label,
-                  style: AppTypography.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: showUnderline
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.88),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 160),
-                  opacity: showUnderline ? 1.0 : 0.0,
-                  child: Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ],
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Text(
+            widget.label,
+            softWrap: false,
+            maxLines: 1,
+            overflow: TextOverflow.visible,
+            style: baseStyle.copyWith(
+              decoration: showUnderline
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
+              decorationColor: Colors.white,
+              decorationThickness: 2,
+              decorationStyle: TextDecorationStyle.solid,
             ),
           ),
         ),

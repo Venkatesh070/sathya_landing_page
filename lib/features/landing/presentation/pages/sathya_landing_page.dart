@@ -5,7 +5,6 @@ import 'package:sathya_landing/features/landing/presentation/landing_colors.dart
 import 'package:sathya_landing/features/landing/presentation/landing_navigation.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_animations.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_chrome.dart';
-import 'package:sathya_landing/features/landing/presentation/widgets/landing_hero_header.dart';
 
 class SathyaLandingPage extends StatefulWidget {
   const SathyaLandingPage({super.key});
@@ -104,7 +103,7 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
   }
 
   double _scrollAnchor(BuildContext context) {
-    return MediaQuery.paddingOf(context).top + 24;
+    return 120.0;
   }
 
   void _onScroll() {
@@ -224,64 +223,72 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
         activeNav: _activeNav,
         onNavLink: _scrollToSection,
       ),
-      body: Stack(
+      body: Column(
         children: [
-          SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
+          LandingNavBar(
+            active: _activeNav,
+            onNavLink: _scrollToSection,
+            onOpenDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
+          ),
+          Expanded(
+            child: Stack(
               children: [
-                _LandingHeaderHeroSection(
-                  sectionKey: _homeKey,
-                  activeNav: _activeNav,
-                  onNavLink: _scrollToSection,
-                  onDownload: LandingNavigation.openPlayStore,
-                  onOpenDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
-                ),
-                LandingScrollReveal(
-                  scrollController: _scrollController,
-                  child: _AboutSection(sectionKey: _aboutKey),
-                ),
-                LandingScrollReveal(
-                  scrollController: _scrollController,
-                  delay: const Duration(milliseconds: 60),
-                  child: _CoreFeaturesSection(
-                    sectionKey: _featuresKey,
-                    scrollController: _scrollController,
+                SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    children: [
+                      _LandingHeroSection(
+                        sectionKey: _homeKey,
+                        onDownload: LandingNavigation.openPlayStore,
+                      ),
+                      LandingScrollReveal(
+                        scrollController: _scrollController,
+                        child: _AboutSection(sectionKey: _aboutKey),
+                      ),
+                      LandingScrollReveal(
+                        scrollController: _scrollController,
+                        delay: const Duration(milliseconds: 60),
+                        child: _CoreFeaturesSection(
+                          sectionKey: _featuresKey,
+                          scrollController: _scrollController,
+                        ),
+                      ),
+                      LandingScrollReveal(
+                        scrollController: _scrollController,
+                        delay: const Duration(milliseconds: 60),
+                        child: _CataloguePromoSection(sectionKey: _catalogueKey),
+                      ),
+                      LandingScrollReveal(
+                        scrollController: _scrollController,
+                        delay: const Duration(milliseconds: 60),
+                        child: _StoreWorksSection(
+                          sectionKey: _storeWorksKey,
+                          scrollController: _scrollController,
+                        ),
+                      ),
+                      LandingScrollReveal(
+                        scrollController: _scrollController,
+                        delay: const Duration(milliseconds: 60),
+                        child: _DownloadCtaSection(sectionKey: _ctaKey),
+                      ),
+                      LandingFooter(
+                        key: _footerKey,
+                        onLinkTap: _onFooterLink,
+                      ),
+                    ],
                   ),
                 ),
-                LandingScrollReveal(
-                  scrollController: _scrollController,
-                  delay: const Duration(milliseconds: 60),
-                  child: _CataloguePromoSection(sectionKey: _catalogueKey),
-                ),
-                LandingScrollReveal(
-                  scrollController: _scrollController,
-                  delay: const Duration(milliseconds: 60),
-                  child: _StoreWorksSection(
-                    sectionKey: _storeWorksKey,
-                    scrollController: _scrollController,
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: LandingScrollToTopButton(
+                    footerKey: _footerKey,
+                    visible: _showScrollToTop,
+                    scrollGeneration: _scrollGeneration,
+                    onPressed: _scrollToTop,
                   ),
-                ),
-                LandingScrollReveal(
-                  scrollController: _scrollController,
-                  delay: const Duration(milliseconds: 60),
-                  child: _DownloadCtaSection(sectionKey: _ctaKey),
-                ),
-                LandingFooter(
-                  key: _footerKey,
-                  onLinkTap: _onFooterLink,
                 ),
               ],
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: LandingScrollToTopButton(
-              footerKey: _footerKey,
-              visible: _showScrollToTop,
-              scrollGeneration: _scrollGeneration,
-              onPressed: _scrollToTop,
             ),
           ),
         ],
@@ -291,38 +298,35 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
 }
 
 // ── Header + Hero (mockup) ───────────────────────────────────────
-class _LandingHeaderHeroSection extends StatelessWidget {
-  const _LandingHeaderHeroSection({
+class _LandingHeroSection extends StatelessWidget {
+  const _LandingHeroSection({
     required this.sectionKey,
-    required this.activeNav,
-    required this.onNavLink,
     required this.onDownload,
-    this.onOpenDrawer,
   });
 
   static const _headerBg = 'assets/images/home/landingHeaderbgImg.png';
   static const _flower = 'assets/images/home/landingFlower.png';
 
   final GlobalKey sectionKey;
-  final String activeNav;
-  final void Function(String label) onNavLink;
   final VoidCallback onDownload;
-  final VoidCallback? onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
     final width = MediaQuery.sizeOf(context).width;
-    final minHeroHeight = wide ? 520.0 : (width < 400 ? 440.0 : 480.0);
+    final minHeroHeight = wide ? 460.0 : (width < 400 ? 380.0 : 420.0);
 
     return Container(
       key: sectionKey,
       width: double.infinity,
-      color: LandingColors.sectionStoreWorks,
+      color: Colors.transparent,
       child: LayoutBuilder(
         builder: (context, constraints) {
+          final heroHeight = wide
+              ? (width * 0.52).clamp(480.0, 720.0)
+              : minHeroHeight;
           return SizedBox(
-            height: wide ? (width * 0.538).clamp(520.0, 780.0) : minHeroHeight,
+            height: heroHeight,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -348,29 +352,8 @@ class _LandingHeaderHeroSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned.fill(
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: wide ? 48 : 16,
-                        right: wide ? 30 : 16,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          LandingHeroNavBar(
-                            wide: wide,
-                            activeNav: activeNav,
-                            onNavLink: onNavLink,
-                            onDownload: onDownload,
-                            onOpenDrawer: onOpenDrawer,
-                          ),
-                          Expanded(child: _heroContent(context, wide)),
-                        ],
-                      ),
-                    ),
-                  ),
+                Center(
+                  child: _heroContent(context, wide),
                 ),
               ],
             ),

@@ -10,26 +10,38 @@ abstract final class AppPages {
     GetPage(
       name: AppRoutes.landing,
       page: () => const SathyaLandingPage(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
     GetPage(
       name: AppRoutes.privacyPolicy,
       page: () => const PrivacyPolicyPage(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
     GetPage(
       name: AppRoutes.termsAndConditions,
       page: () => const TermsAndConditionsPage(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
     GetPage(
       name: AppRoutes.donate,
       page: () => const DonatePage(),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
     GetPage(
       name: AppRoutes.donateSuccess,
       page: () => const DonateResultPage(kind: DonateResultKind.success),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
     GetPage(
       name: AppRoutes.donateCancelled,
       page: () => const DonateResultPage(kind: DonateResultKind.cancelled),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
     ),
   ];
 }

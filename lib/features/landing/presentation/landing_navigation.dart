@@ -119,16 +119,18 @@ abstract final class LandingNavigation {
   }
 
   static void goToLanding() {
-    Get.offAllNamed(AppRoutes.landing);
+    if (Get.currentRoute == AppRoutes.landing) return;
+    Get.offNamed(AppRoutes.landing);
   }
 
   static void goToDonate() {
     if (Get.currentRoute == AppRoutes.donate) return;
-    Get.toNamed(AppRoutes.donate);
+    Get.offNamed(AppRoutes.donate);
   }
 
   static void goToLandingSection(String section) {
-    Get.offAllNamed(
+    if (Get.currentRoute == AppRoutes.landing) return;
+    Get.offNamed(
       AppRoutes.landing,
       arguments: {'section': section},
     );

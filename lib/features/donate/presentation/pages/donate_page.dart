@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,7 +22,6 @@ class _DonatePageState extends State<DonatePage> {
   static const _cardForm = Color(0xFFFFFBF6);
   static const _ink = Color(0xFF3B1E08);
   static const _muted = Color(0xFF6E523C);
-  static const _fieldBorder = Color(0xFFDFD0BF);
   static const _flowerAsset = 'assets/images/donateFlowerImg.png';
 
   final _formKey = GlobalKey<FormState>();
@@ -38,7 +35,6 @@ class _DonatePageState extends State<DonatePage> {
   WebsiteDonationPublicConfig _config =
       WebsiteDonationPublicConfig.fallback();
   bool _loadingConfig = true;
-  String? _configError;
   int? _selectedPreset;
   bool _submitting = false;
   String? _submitError;
@@ -122,7 +118,6 @@ class _DonatePageState extends State<DonatePage> {
   Future<void> _loadConfig() async {
     setState(() {
       _loadingConfig = true;
-      _configError = null;
     });
     try {
       final config = await _api.fetchConfig();
@@ -144,8 +139,6 @@ class _DonatePageState extends State<DonatePage> {
       setState(() {
         _config = WebsiteDonationPublicConfig.fallback();
         _loadingConfig = false;
-        _configError =
-            'Could not reach the donation service. You can still review amounts; retry before paying.';
       });
     }
   }
@@ -221,14 +214,7 @@ class _DonatePageState extends State<DonatePage> {
         children: [
           LandingNavBar(
             active: 'Donate',
-            onHome: LandingNavigation.goToLanding,
-            onAbout: () => LandingNavigation.goToLandingSection('About'),
-            onFeatures: () =>
-                LandingNavigation.goToLandingSection('Features'),
-            onPrivacy: LandingNavigation.openPrivacyPolicy,
-            onTerms: LandingNavigation.openTermsAndConditions,
-            onDownload: LandingNavigation.openPlayStore,
-            onDonate: LandingNavigation.goToDonate,
+            onNavLink: _onNav,
             onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
           ),
           Expanded(
@@ -243,7 +229,7 @@ class _DonatePageState extends State<DonatePage> {
                         wide ? 64 : 16,
                         0,
                         wide ? 64 : 16,
-                        wide ? 40 : 24,
+                        0,
                       ),
                       child: Center(
                         child: ConstrainedBox(
@@ -261,7 +247,6 @@ class _DonatePageState extends State<DonatePage> {
                                   wide: wide,
                                   formKey: _formKey,
                                   config: _config,
-                                  configError: _configError,
                                   submitError: _submitError,
                                   submitting: _submitting,
                                   selectedPreset: _selectedPreset,
@@ -270,7 +255,6 @@ class _DonatePageState extends State<DonatePage> {
                                   firstNameCtrl: _firstNameCtrl,
                                   lastNameCtrl: _lastNameCtrl,
                                   noteCtrl: _noteCtrl,
-                                  onRetryConfig: _loadConfig,
                                   onSelectPreset: (amount) {
                                     setState(() {
                                       _selectedPreset = amount;
@@ -294,6 +278,7 @@ class _DonatePageState extends State<DonatePage> {
                       ),
                     ),
                   ),
+                  SizedBox(height: wide ? 48 : 32),
                   LandingFooter(onLinkTap: _onNav),
                 ],
               ),
@@ -309,11 +294,12 @@ class _HeroBanner extends StatelessWidget {
   const _HeroBanner({required this.wide});
 
   final bool wide;
+  static const _flower = 'assets/images/home/landingFlower.png';
 
   @override
   Widget build(BuildContext context) {
     return ClipPath(
-      clipper: const _CloudWaveClipper(),
+      clipper: const _TempleCanopyClipper(),
       child: ColoredBox(
         color: _DonatePageState._orange,
         child: SizedBox(
@@ -322,34 +308,37 @@ class _HeroBanner extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               Positioned(
-                right: wide ? -20 : -100,
-                top: wide ? -20 : -70,
-                child: Opacity(
-                  opacity: 0.22,
-                  child: CustomPaint(
-                    size: Size(wide ? 460 : 300, wide ? 460 : 300),
-                    painter: _MandalaPainter(),
+                right: wide ? -260 : -160,
+                top: wide ? -30 : -20,
+                child: IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.42,
+                    child: Image.asset(
+                      _flower,
+                      width: wide ? 740 : 460,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   wide ? 64 : 22,
-                  wide ? 52 : 34,
+                  wide ? 48 : 32,
                   wide ? 64 : 22,
-                  wide ? 100 : 78,
+                  wide ? 120 : 92,
                 ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: wide ? 640 : 520),
+                    constraints: BoxConstraints(maxWidth: wide ? 660 : 520),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Support a More Meaningful Spiritual Journey',
                           style: AppTypography.lora(
-                            fontSize: wide ? 44 : 30,
+                            fontSize: wide ? 44 : 28,
                             fontWeight: FontWeight.w700,
                             height: 1.18,
                             color: Colors.white,
@@ -360,9 +349,9 @@ class _HeroBanner extends StatelessWidget {
                           'Your support helps Sathya share the timeless wisdom of '
                           'the Vedas and support our growing community.',
                           style: AppTypography.inter(
-                            fontSize: wide ? 16.5 : 14.5,
+                            fontSize: wide ? 16 : 14,
                             height: 1.55,
-                            color: Colors.white.withValues(alpha: 0.96),
+                            color: Colors.white.withValues(alpha: 0.95),
                           ),
                         ),
                       ],
@@ -383,7 +372,6 @@ class _DonationCard extends StatelessWidget {
     required this.wide,
     required this.formKey,
     required this.config,
-    required this.configError,
     required this.submitError,
     required this.submitting,
     required this.selectedPreset,
@@ -392,7 +380,6 @@ class _DonationCard extends StatelessWidget {
     required this.firstNameCtrl,
     required this.lastNameCtrl,
     required this.noteCtrl,
-    required this.onRetryConfig,
     required this.onSelectPreset,
     required this.onAmountChanged,
     required this.onSubmit,
@@ -401,7 +388,6 @@ class _DonationCard extends StatelessWidget {
   final bool wide;
   final GlobalKey<FormState> formKey;
   final WebsiteDonationPublicConfig config;
-  final String? configError;
   final String? submitError;
   final bool submitting;
   final int? selectedPreset;
@@ -410,7 +396,6 @@ class _DonationCard extends StatelessWidget {
   final TextEditingController firstNameCtrl;
   final TextEditingController lastNameCtrl;
   final TextEditingController noteCtrl;
-  final VoidCallback onRetryConfig;
   final ValueChanged<int> onSelectPreset;
   final ValueChanged<String> onAmountChanged;
   final VoidCallback onSubmit;
@@ -420,24 +405,23 @@ class _DonationCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 28,
             offset: const Offset(0, 14),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: wide
-            ? SizedBox(
-                height: 640,
+            ? IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Expanded(flex: 48, child: _StoryPanel()),
+                    Expanded(flex: 48, child: _StoryPanel(wide: wide)),
                     Expanded(flex: 52, child: _formPane()),
                   ],
                 ),
@@ -445,28 +429,15 @@ class _DonationCard extends StatelessWidget {
             : Column(
                 children: [
                   const SizedBox(
-                    height: 320,
+                    height: 300,
                     width: double.infinity,
-                    child: _StoryPanel(),
+                    child: _StoryPanel(wide: false),
                   ),
                   _formPane(),
                 ],
               ),
       ),
     );
-  }
-
-  String get _contactLine {
-    final email = config.contactEmail.trim();
-    final phone = config.contactPhone?.trim();
-    final emailOk =
-        email.isNotEmpty && !email.contains('CONFIGURE') && email.contains('@');
-    final phoneOk = phone != null && phone.isNotEmpty && !phone.contains('CONFIGURE');
-    final parts = <String>[
-      if (emailOk) email else DonationConfig.fallbackContactEmail,
-      if (phoneOk) phone else DonationConfig.fallbackContactPhone,
-    ];
-    return parts.join(' · ');
   }
 
   Widget _formPane() {
@@ -476,30 +447,28 @@ class _DonationCard extends StatelessWidget {
 
     return ColoredBox(
       color: _DonatePageState._cardForm,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(wide ? 40 : 22, 32, wide ? 40 : 22, 28),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          wide ? 38 : 20,
+          wide ? 28 : 22,
+          wide ? 38 : 20,
+          wide ? 26 : 22,
+        ),
         child: Form(
           key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Make a Donation',
                 style: AppTypography.lora(
-                  fontSize: wide ? 32 : 26,
+                  fontSize: wide ? 30 : 25,
                   fontWeight: FontWeight.w700,
                   color: _DonatePageState._ink,
                 ),
               ),
-              if (configError != null) ...[
-                const SizedBox(height: 14),
-                _InlineNotice(
-                  configError!,
-                  tone: _NoticeTone.error,
-                  onRetry: onRetryConfig,
-                ),
-              ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 'Select an amount (ZAR)',
                 style: AppTypography.inter(
@@ -508,7 +477,7 @@ class _DonationCard extends StatelessWidget {
                   color: _DonatePageState._muted,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   for (var i = 0; i < amounts.length; i++) ...[
@@ -524,7 +493,7 @@ class _DonationCard extends StatelessWidget {
                   ],
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               Text(
                 'Custom amount (ZAR)',
                 style: AppTypography.inter(
@@ -533,7 +502,7 @@ class _DonationCard extends StatelessWidget {
                   color: _DonatePageState._muted,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: amountCtrl,
                 enabled: !submitting,
@@ -546,7 +515,7 @@ class _DonationCard extends StatelessWidget {
                   fontSize: 15,
                   color: _DonatePageState._ink,
                 ),
-                decoration: _fieldDecoration(),
+                decoration: _fieldDecoration(hint: '100'),
                 onChanged: onAmountChanged,
                 validator: (value) {
                   final parsed = num.tryParse((value ?? '').trim());
@@ -560,7 +529,7 @@ class _DonationCard extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 18),
               Text(
                 'Your details',
                 style: AppTypography.inter(
@@ -579,18 +548,47 @@ class _DonationCard extends StatelessWidget {
                   color: _DonatePageState._ink,
                 ),
                 decoration: _fieldDecoration(
-                  hint: 'Email (required for PayFast receipt)',
+                  label: Text.rich(
+                    TextSpan(
+                      text: 'Email ',
+                      style: AppTypography.inter(
+                        fontSize: 14,
+                        color: _DonatePageState._muted.withValues(alpha: 0.65),
+                      ),
+                      children: const [
+                        TextSpan(
+                          text: '*',
+                          style: TextStyle(
+                            color: Color(0xFFD32F2F),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' (required for PayFast receipt)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 validator: (value) {
                   final v = (value ?? '').trim();
-                  if (v.isEmpty || !v.contains('@')) {
+                  if (v.isEmpty) {
+                    return 'Email is required';
+                  }
+                  if (!v.contains('@') || !v.contains('.')) {
                     return 'Enter a valid email';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: TextFormField(
@@ -600,8 +598,35 @@ class _DonationCard extends StatelessWidget {
                         fontSize: 15,
                         color: _DonatePageState._ink,
                       ),
-                      decoration:
-                          _fieldDecoration(hint: 'First name (optional)'),
+                      decoration: _fieldDecoration(
+                        label: Text.rich(
+                          TextSpan(
+                            text: 'First name ',
+                            style: AppTypography.inter(
+                              fontSize: 14,
+                              color:
+                                  _DonatePageState._muted.withValues(alpha: 0.65),
+                            ),
+                            children: const [
+                              TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                  color: Color(0xFFD32F2F),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      validator: (value) {
+                        final v = (value ?? '').trim();
+                        if (v.isEmpty) {
+                          return 'First name is required';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -619,11 +644,11 @@ class _DonationCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               TextFormField(
                 controller: noteCtrl,
                 enabled: !submitting,
-                maxLines: 3,
+                maxLines: 2,
                 maxLength: 280,
                 style: AppTypography.inter(
                   fontSize: 15,
@@ -636,9 +661,9 @@ class _DonationCard extends StatelessWidget {
                 _InlineNotice(submitError!, tone: _NoticeTone.error),
                 const SizedBox(height: 8),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               SizedBox(
-                height: 54,
+                height: 48,
                 child: FilledButton(
                   onPressed: submitting ? null : onSubmit,
                   style: FilledButton.styleFrom(
@@ -648,7 +673,7 @@ class _DonationCard extends StatelessWidget {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: submitting
@@ -663,23 +688,23 @@ class _DonationCard extends StatelessWidget {
                       : Text(
                           'Continue to Secure Payment',
                           style: AppTypography.inter(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
                     child: Icon(
-                      Icons.lock_outline_rounded,
+                      Icons.lock_rounded,
                       size: 15,
-                      color: _DonatePageState._muted.withValues(alpha: 0.85),
+                      color: Color(0xFF7E6C5F),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -690,21 +715,11 @@ class _DonationCard extends StatelessWidget {
                       style: AppTypography.inter(
                         fontSize: 12.5,
                         height: 1.45,
-                        color: _DonatePageState._muted,
+                        color: const Color(0xFF7E6C5F),
                       ),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'This page does not claim nonprofit approval or tax deductibility. '
-                'Questions: $_contactLine.',
-                style: AppTypography.inter(
-                  fontSize: 11.5,
-                  height: 1.45,
-                  color: _DonatePageState._muted.withValues(alpha: 0.9),
-                ),
               ),
             ],
           ),
@@ -713,28 +728,42 @@ class _DonationCard extends StatelessWidget {
     );
   }
 
-  InputDecoration _fieldDecoration({String? hint}) {
+  InputDecoration _fieldDecoration({String? hint, Widget? label}) {
     return InputDecoration(
       hintText: hint,
+      label: label,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
       hintStyle: AppTypography.inter(
         fontSize: 14,
-        color: _DonatePageState._muted.withValues(alpha: 0.5),
+        color: _DonatePageState._muted.withValues(alpha: 0.55),
       ),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _DonatePageState._fieldBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _DonatePageState._fieldBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         borderSide:
             const BorderSide(color: _DonatePageState._orange, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+      ),
+      errorStyle: AppTypography.inter(
+        fontSize: 11.5,
+        color: const Color(0xFFD32F2F),
       ),
       counterStyle: AppTypography.inter(
         fontSize: 11,
@@ -745,68 +774,130 @@ class _DonationCard extends StatelessWidget {
 }
 
 class _StoryPanel extends StatelessWidget {
-  const _StoryPanel();
+  const _StoryPanel({required this.wide});
+
+  final bool wide;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(
-          _DonatePageState._flowerAsset,
-          fit: BoxFit.cover,
-          alignment: const Alignment(-0.35, 0.1),
+        Positioned.fill(
+          child: Image.asset(
+            _DonatePageState._flowerAsset,
+            fit: BoxFit.cover,
+            alignment: Alignment(wide ? -0.92 : -0.3, 0.0),
+          ),
         ),
-        // Soft wash so the lotus stays visible, text remains readable.
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.white.withValues(alpha: 0.05),
-                Colors.white.withValues(alpha: 0.28),
-                Colors.white.withValues(alpha: 0.78),
-                Colors.white.withValues(alpha: 0.92),
-              ],
-              stops: const [0.0, 0.35, 0.72, 1.0],
+        if (wide)
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.transparent,
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.55),
+                  ],
+                  stops: const [0.35, 0.65, 1.0],
+                ),
+              ),
+            ),
+          )
+        else
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.white.withValues(alpha: 0.70),
+                    Colors.white.withValues(alpha: 0.95),
+                  ],
+                  stops: const [0.25, 0.65, 1.0],
+                ),
+              ),
             ),
           ),
-        ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(36, 40, 36, 44),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              CustomPaint(
-                size: const Size(34, 28),
-                painter: _LotusIconPainter(),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Your support makes\na difference',
-                textAlign: TextAlign.center,
-                style: AppTypography.lora(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                  height: 1.22,
-                  color: _DonatePageState._ink,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'With your generosity, we can continue to bring authentic '
-                'Vedic knowledge, spiritual guidance and valuable resources '
-                'to people around the world.',
-                textAlign: TextAlign.center,
-                style: AppTypography.inter(
-                  fontSize: 14.5,
-                  height: 1.55,
-                  color: _DonatePageState._muted,
-                ),
-              ),
-            ],
+          padding: EdgeInsets.symmetric(
+            horizontal: wide ? 28 : 20,
+            vertical: wide ? 36 : 24,
           ),
+              child: Align(
+                alignment: wide
+                    ? const Alignment(0.92, -0.42)
+                    : const Alignment(0.0, -0.25),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: wide ? 310 : double.infinity,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const _DecorativeLotusDivider(),
+                      const SizedBox(height: 14),
+                      Text(
+                        'Your support\nmakes a difference',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.lora(
+                          fontSize: wide ? 28 : 24,
+                          fontWeight: FontWeight.w700,
+                          height: 1.22,
+                          color: _DonatePageState._ink,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'With your generosity, we can continue to bring authentic '
+                        'Vedic knowledge, spiritual guidance and valuable resources '
+                        'to people around the world.',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.inter(
+                          fontSize: wide ? 14 : 13.5,
+                          height: 1.55,
+                          color: _DonatePageState._muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+  }
+}
+
+class _DecorativeLotusDivider extends StatelessWidget {
+  const _DecorativeLotusDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 1,
+          color: const Color(0xFFC89B66),
+        ),
+        const SizedBox(width: 8),
+        CustomPaint(
+          size: const Size(22, 18),
+          painter: _LotusIconPainter(),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          width: 28,
+          height: 1,
+          color: const Color(0xFFC89B66),
         ),
       ],
     );
@@ -830,19 +921,19 @@ class _AmountPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: selected ? _DonatePageState._orange : Colors.white,
-      borderRadius: BorderRadius.circular(999),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: selected
                   ? _DonatePageState._orange
-                  : _DonatePageState._fieldBorder,
+                  : const Color(0xFFE2D6C8),
               width: 1.2,
             ),
           ),
@@ -864,12 +955,10 @@ class _InlineNotice extends StatelessWidget {
   const _InlineNotice(
     this.text, {
     required this.tone,
-    this.onRetry,
   });
 
   final String text;
   final _NoticeTone tone;
-  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -889,19 +978,9 @@ class _InlineNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            text,
-            style: AppTypography.inter(fontSize: 13, height: 1.4, color: color),
-          ),
-          if (onRetry != null)
-            TextButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
-        ],
+      child: Text(
+        text,
+        style: AppTypography.inter(fontSize: 13, height: 1.4, color: color),
       ),
     );
   }
@@ -909,37 +988,45 @@ class _InlineNotice extends StatelessWidget {
 
 enum _NoticeTone { warning, error }
 
-/// Cloud / scallop edge matching the design mock.
-class _CloudWaveClipper extends CustomClipper<Path> {
-  const _CloudWaveClipper();
+/// Temple canopy / bracket edge framing the top of the donation card.
+class _TempleCanopyClipper extends CustomClipper<Path> {
+  const _TempleCanopyClipper();
 
   @override
   Path getClip(Size size) {
-    final path = Path()..lineTo(0, size.height - 42);
-    const bumps = 10;
-    final w = size.width / bumps;
-    for (var i = 0; i < bumps; i++) {
-      final start = i * w;
-      path.cubicTo(
-        start + w * 0.25,
-        size.height - 8,
-        start + w * 0.35,
-        size.height - 8,
-        start + w * 0.5,
-        size.height - 34,
-      );
-      path.cubicTo(
-        start + w * 0.65,
-        size.height - 58,
-        start + w * 0.75,
-        size.height - 58,
-        start + w,
-        size.height - 34,
-      );
-    }
-    path
-      ..lineTo(size.width, 0)
-      ..close();
+    final path = Path();
+    const dropHeight = 36.0;
+    final topEdge = size.height - dropHeight;
+    final shelfWidth = (size.width * 0.08).clamp(28.0, 90.0);
+    const curveWidth = 42.0;
+
+    path.lineTo(0, topEdge);
+    path.lineTo(shelfWidth, topEdge);
+    // Smooth S-curve down to bottom edge (size.height)
+    path.cubicTo(
+      shelfWidth + curveWidth * 0.45,
+      topEdge,
+      shelfWidth + curveWidth * 0.55,
+      size.height,
+      shelfWidth + curveWidth,
+      size.height,
+    );
+
+    final rightShelf = size.width - shelfWidth;
+    path.lineTo(rightShelf - curveWidth, size.height);
+    // Smooth S-curve up to topEdge
+    path.cubicTo(
+      rightShelf - curveWidth * 0.55,
+      size.height,
+      rightShelf - curveWidth * 0.45,
+      topEdge,
+      rightShelf,
+      topEdge,
+    );
+
+    path.lineTo(size.width, topEdge);
+    path.lineTo(size.width, 0);
+    path.close();
     return path;
   }
 
@@ -947,69 +1034,40 @@ class _CloudWaveClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-class _MandalaPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.15;
 
-    for (var ring = 1; ring <= 7; ring++) {
-      canvas.drawCircle(center, size.shortestSide * 0.07 * ring, paint);
-    }
-
-    const rays = 24;
-    for (var i = 0; i < rays; i++) {
-      final angle = (math.pi * 2 / rays) * i;
-      canvas.drawLine(
-        center,
-        Offset(
-          center.dx + math.cos(angle) * size.shortestSide * 0.48,
-          center.dy + math.sin(angle) * size.shortestSide * 0.48,
-        ),
-        paint,
-      );
-    }
-
-    for (var i = 0; i < 12; i++) {
-      final angle = (math.pi * 2 / 12) * i;
-      canvas.drawCircle(
-        Offset(
-          center.dx + math.cos(angle) * size.shortestSide * 0.28,
-          center.dy + math.sin(angle) * size.shortestSide * 0.28,
-        ),
-        7,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 class _LotusIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFC47A2C)
+      ..color = const Color(0xFFC49A6C)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
+      ..strokeWidth = 1.3
       ..strokeCap = StrokeCap.round;
 
     final cx = size.width / 2;
-    final cy = size.height * 0.62;
+    final cy = size.height * 0.75;
 
-    for (final dx in [-10.0, -5.0, 0.0, 5.0, 10.0]) {
-      final path = Path()
-        ..moveTo(cx, cy + 6)
-        ..quadraticBezierTo(cx + dx, cy - 10, cx + dx * 0.2, cy - 18)
-        ..quadraticBezierTo(cx, cy - 6, cx, cy + 6);
-      canvas.drawPath(path, paint);
-    }
-    canvas.drawCircle(Offset(cx, cy - 2), 2.2, paint..style = PaintingStyle.fill);
+    // Central petal
+    final pCenter = Path()
+      ..moveTo(cx, cy)
+      ..quadraticBezierTo(cx - 3, cy - 10, cx, cy - 15)
+      ..quadraticBezierTo(cx + 3, cy - 10, cx, cy);
+    canvas.drawPath(pCenter, paint);
+
+    // Left petal
+    final pLeft = Path()
+      ..moveTo(cx - 1, cy)
+      ..quadraticBezierTo(cx - 9, cy - 6, cx - 8, cy - 11)
+      ..quadraticBezierTo(cx - 4, cy - 10, cx - 1, cy);
+    canvas.drawPath(pLeft, paint);
+
+    // Right petal
+    final pRight = Path()
+      ..moveTo(cx + 1, cy)
+      ..quadraticBezierTo(cx + 9, cy - 6, cx + 8, cy - 11)
+      ..quadraticBezierTo(cx + 4, cy - 10, cx + 1, cy);
+    canvas.drawPath(pRight, paint);
   }
 
   @override

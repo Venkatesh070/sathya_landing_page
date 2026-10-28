@@ -20,6 +20,8 @@ class SathyaLandingApp extends StatelessWidget {
         ),
       ),
       initialRoute: AppRoutes.landing,
+      defaultTransition: Transition.noTransition,
+      transitionDuration: Duration.zero,
       getPages: AppPages.routes,
     );
   }

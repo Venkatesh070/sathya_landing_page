@@ -7,106 +7,178 @@ class LandingNavBar extends StatelessWidget {
   const LandingNavBar({
     super.key,
     required this.active,
-    required this.onHome,
-    required this.onAbout,
-    required this.onFeatures,
-    required this.onPrivacy,
-    required this.onTerms,
-    required this.onDownload,
+    this.onNavLink,
+    this.onHome,
+    this.onAbout,
+    this.onFeatures,
+    this.onPrivacy,
+    this.onTerms,
+    this.onDownload,
     this.onDonate,
     this.onOpenDrawer,
   });
 
   final String active;
-  final VoidCallback onHome;
-  final VoidCallback onAbout;
-  final VoidCallback onFeatures;
-  final VoidCallback onPrivacy;
-  final VoidCallback onTerms;
-  final VoidCallback onDownload;
+  final void Function(String label)? onNavLink;
+  final VoidCallback? onHome;
+  final VoidCallback? onAbout;
+  final VoidCallback? onFeatures;
+  final VoidCallback? onPrivacy;
+  final VoidCallback? onTerms;
+  final VoidCallback? onDownload;
   final VoidCallback? onDonate;
   final VoidCallback? onOpenDrawer;
 
-  VoidCallback get _donate => onDonate ?? LandingNavigation.goToDonate;
+  static const navItems = [
+    'Home',
+    'About',
+    'Core Features',
+    'Ayurveda',
+    'How the Store Works',
+    'Donate',
+  ];
+
+  void _handleNav(String label) {
+    if (onNavLink != null) {
+      onNavLink!(label);
+      return;
+    }
+    switch (label) {
+      case 'Home':
+        if (onHome != null) {
+          onHome!();
+        } else {
+          LandingNavigation.goToLanding();
+        }
+      case 'About':
+        if (onAbout != null) {
+          onAbout!();
+        } else {
+          LandingNavigation.goToLandingSection('About');
+        }
+      case 'Core Features':
+      case 'Features':
+        if (onFeatures != null) {
+          onFeatures!();
+        } else {
+          LandingNavigation.goToLandingSection('Core Features');
+        }
+      case 'Ayurveda':
+        LandingNavigation.goToLandingSection('Ayurveda');
+      case 'How the Store Works':
+        LandingNavigation.goToLandingSection('How the Store Works');
+      case 'Donate':
+        if (onDonate != null) {
+          onDonate!();
+        } else {
+          LandingNavigation.goToDonate();
+        }
+      default:
+        LandingNavigation.handleLink(label);
+    }
+  }
+
+  bool _isLinkActive(String label) {
+    return switch (label) {
+      'Home' => active == 'Home',
+      'About' => active == 'About' || active == 'About Us',
+      'Core Features' => active == 'Core Features' || active == 'Features',
+      'Ayurveda' => active == 'Ayurveda' || active == 'Ayurveda for Better Living',
+      'How the Store Works' =>
+          active == 'How the Store Works' ||
+          active == 'How store works' ||
+          active == 'store',
+      'Donate' => active == 'Donate',
+      _ => active == label,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 900;
-    final links = <(String, VoidCallback)>[
-      ('Home', onHome),
-      ('About', onAbout),
-      ('Features', onFeatures),
-      ('Privacy Policy', onPrivacy),
-      ('Terms & Conditions', onTerms),
-    ];
+    final width = MediaQuery.sizeOf(context).width;
+    final wide = width >= 980;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: LandingColors.headerFooterBg,
-          elevation: 0,
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: wide ? 40 : 16,
-                right: wide ? 40 : 16,
-                top: 12,
-                bottom: 12,
-              ),
-              child: Row(
-                children: [
-                  Image.asset('assets/images/logoWhite.png', height: 44),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      'Sathya',
-                      style: AppTypography.lora(
-                        fontSize: wide ? 22 : 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+    return Material(
+      color: LandingColors.headerFooterBg,
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.18),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: wide ? 40 : 16,
+            vertical: 12,
+          ),
+          child: Row(
+            children: [
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => _handleNav('Home'),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/images/logoWhite.png', height: 42),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Sathya',
+                        style: AppTypography.lora(
+                          fontSize: wide ? 22 : 19,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (wide) ...[
-                    const Spacer(),
-                    for (final link in links) ...[
-                      LandingNavLink(
-                        label: link.$1,
-                        isActive: active == link.$1,
-                        onTap: link.$2,
-                      ),
-                      const SizedBox(width: 18),
                     ],
-                    LandingHeaderDonateButton(
-                      isActive: active == 'Donate',
-                      onTap: _donate,
-                    ),
-                  ],
-                  if (!wide) ...[
-                    const Spacer(),
-                    LandingHeaderDonateButton(
-                      isActive: active == 'Donate',
-                      onTap: _donate,
-                      compact: true,
+                  ),
+                ),
+              ),
+              if (wide) ...[
+                const Spacer(),
+                for (var i = 0; i < navItems.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 14),
+                  LandingNavLink(
+                    label: navItems[i],
+                    isActive: _isLinkActive(navItems[i]),
+                    onTap: () => _handleNav(navItems[i]),
+                  ),
+                ],
+                const Spacer(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LandingCompactStoreBadge(
+                      label: 'Download on the',
+                      store: 'App Store',
+                      leading: const Icon(
+                        Icons.apple_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onTap: LandingNavigation.openAppStore,
                     ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
-                      onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+                    LandingCompactStoreBadge(
+                      label: 'GET IT ON',
+                      store: 'Google Play',
+                      leading: const LandingPlayStoreIcon(size: 20),
+                      onTap: LandingNavigation.openPlayStore,
                     ),
                   ],
-                ],
-              ),
-            ),
+                ),
+              ],
+              if (!wide) ...[
+                const Spacer(),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+                  onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+                ),
+              ],
+            ],
           ),
         ),
-        if (!wide) LandingMobileNavStrip(active: active, links: links),
-      ],
+      ),
     );
   }
 }
@@ -125,31 +197,10 @@ class LandingHeaderDonateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.18),
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? 14 : 18,
-            vertical: compact ? 8 : 10,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
-          ),
-          child: Text(
-            'Donate',
-            style: AppTypography.inter(
-              fontSize: compact ? 13 : 14,
-              fontWeight: FontWeight.w700,
-              color: isActive ? LandingColors.headerFooterBg : Colors.white,
-            ),
-          ),
-        ),
-      ),
+    return LandingNavLink(
+      label: 'Donate',
+      isActive: isActive,
+      onTap: onTap,
     );
   }
 }
@@ -188,7 +239,7 @@ class LandingMobileNavStrip extends StatelessWidget {
   }
 }
 
-class LandingNavLink extends StatelessWidget {
+class LandingNavLink extends StatefulWidget {
   const LandingNavLink({
     super.key,
     required this.label,
@@ -201,17 +252,114 @@ class LandingNavLink extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<LandingNavLink> createState() => _LandingNavLinkState();
+}
+
+class _LandingNavLinkState extends State<LandingNavLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final showUnderline = widget.isActive || _isHovered;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: IntrinsicWidth(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.label,
+                  style: AppTypography.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: showUnderline
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.88),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 160),
+                  opacity: showUnderline ? 1.0 : 0.0,
+                  child: Container(
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LandingCompactStoreBadge extends StatelessWidget {
+  const LandingCompactStoreBadge({
+    super.key,
+    required this.label,
+    required this.store,
+    required this.leading,
+    required this.onTap,
+  });
+
+  final String label;
+  final String store;
+  final Widget leading;
+  final VoidCallback onTap;
+
+  @override
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
-        child: Text(
-          label,
-          style: AppTypography.inter(
-            fontSize: 15,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-            color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.82),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              leading,
+              const SizedBox(width: 6),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: AppTypography.inter(
+                      fontSize: 7,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    store,
+                    style: AppTypography.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -266,11 +414,15 @@ class LandingFooter extends StatelessWidget {
 
   final void Function(String label) onLinkTap;
 
-  static const _quickLinks = [
+  static const _quickLinksLeft = [
     'Home',
+    'About',
+    'Core Features',
+  ];
+  static const _quickLinksRight = [
+    'Ayurveda',
+    'How the Store Works',
     'Donate',
-    'Privacy Policy',
-    'Terms & Conditions',
   ];
 
   static const _maxContentWidth = 1280.0;
@@ -578,12 +730,38 @@ class LandingFooter extends StatelessWidget {
       children: [
         _sectionTitle('Quick Links', wide: wide),
         const SizedBox(height: 12),
-        for (final link in _quickLinks)
-          LandingFooterLink(
-            label: link,
-            wide: wide,
-            onTap: () => onLinkTap(link),
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final link in _quickLinksLeft)
+                    LandingFooterLink(
+                      label: link,
+                      wide: wide,
+                      onTap: () => onLinkTap(link),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final link in _quickLinksRight)
+                    LandingFooterLink(
+                      label: link,
+                      wide: wide,
+                      onTap: () => onLinkTap(link),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -762,7 +940,6 @@ class LandingMobileDrawer extends StatelessWidget {
     'Core Features',
     'Ayurveda',
     'How the Store Works',
-    'Ready to Deepen Your Practice?',
     'Donate',
   ];
 

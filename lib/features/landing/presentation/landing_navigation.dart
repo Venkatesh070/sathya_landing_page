@@ -122,6 +122,11 @@ abstract final class LandingNavigation {
     Get.offAllNamed(AppRoutes.landing);
   }
 
+  static void goToDonate() {
+    if (Get.currentRoute == AppRoutes.donate) return;
+    Get.toNamed(AppRoutes.donate);
+  }
+
   static void goToLandingSection(String section) {
     Get.offAllNamed(
       AppRoutes.landing,
@@ -171,7 +176,7 @@ abstract final class LandingNavigation {
       case 'Terms & Conditions':
         openTermsAndConditions();
       case 'Donate':
-        Get.toNamed(AppRoutes.donate);
+        goToDonate();
     }
   }
 }

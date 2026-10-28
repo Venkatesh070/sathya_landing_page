@@ -203,6 +203,8 @@ class _SathyaLandingPageState extends State<SathyaLandingPage> {
         _scrollTo(_storeWorksKey, 'How the Store Works');
       case 'Ready to Deepen Your Practice?':
         _scrollTo(_ctaKey, label);
+      case 'Donate':
+        LandingNavigation.goToDonate();
     }
   }
 

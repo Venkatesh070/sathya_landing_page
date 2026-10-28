@@ -130,7 +130,12 @@ class LandingHeroNavBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
+            LandingHeaderDonateButton(
+              isActive: activeNav == 'Donate',
+              onTap: () => onNavLink('Donate'),
+            ),
+            const SizedBox(width: 12),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -181,11 +186,22 @@ class LandingHeroNavBar extends StatelessWidget {
                 ),
               ],
             ),
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
-              onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LandingHeaderDonateButton(
+                  isActive: activeNav == 'Donate',
+                  compact: true,
+                  onTap: () => onNavLink('Donate'),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+                  onPressed: onOpenDrawer ?? () => Scaffold.of(context).openEndDrawer(),
+                ),
+              ],
             ),
           ],
         ),

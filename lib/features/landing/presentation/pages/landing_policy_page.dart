@@ -69,6 +69,7 @@ class LandingPolicyPage extends StatelessWidget {
               onPrivacy: LandingNavigation.openPrivacyPolicy,
               onTerms: LandingNavigation.openTermsAndConditions,
               onDownload: LandingNavigation.openPlayStore,
+              onDonate: LandingNavigation.goToDonate,
               onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
             ),
           Expanded(

@@ -13,6 +13,7 @@ class LandingNavBar extends StatelessWidget {
     required this.onPrivacy,
     required this.onTerms,
     required this.onDownload,
+    this.onDonate,
     this.onOpenDrawer,
   });
 
@@ -23,7 +24,10 @@ class LandingNavBar extends StatelessWidget {
   final VoidCallback onPrivacy;
   final VoidCallback onTerms;
   final VoidCallback onDownload;
+  final VoidCallback? onDonate;
   final VoidCallback? onOpenDrawer;
+
+  VoidCallback get _donate => onDonate ?? LandingNavigation.goToDonate;
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +80,19 @@ class LandingNavBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 18),
                     ],
+                    LandingHeaderDonateButton(
+                      isActive: active == 'Donate',
+                      onTap: _donate,
+                    ),
                   ],
                   if (!wide) ...[
                     const Spacer(),
+                    LandingHeaderDonateButton(
+                      isActive: active == 'Donate',
+                      onTap: _donate,
+                      compact: true,
+                    ),
+                    const SizedBox(width: 8),
                     IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -93,6 +107,49 @@ class LandingNavBar extends StatelessWidget {
         ),
         if (!wide) LandingMobileNavStrip(active: active, links: links),
       ],
+    );
+  }
+}
+
+class LandingHeaderDonateButton extends StatelessWidget {
+  const LandingHeaderDonateButton({
+    super.key,
+    required this.onTap,
+    this.isActive = false,
+    this.compact = false,
+  });
+
+  final VoidCallback onTap;
+  final bool isActive;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.18),
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 14 : 18,
+            vertical: compact ? 8 : 10,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
+          ),
+          child: Text(
+            'Donate',
+            style: AppTypography.inter(
+              fontSize: compact ? 13 : 14,
+              fontWeight: FontWeight.w700,
+              color: isActive ? LandingColors.headerFooterBg : Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -706,10 +763,10 @@ class LandingMobileDrawer extends StatelessWidget {
     'Ayurveda',
     'How the Store Works',
     'Ready to Deepen Your Practice?',
+    'Donate',
   ];
 
   static const policyLinks = [
-    'Donate',
     'Privacy Policy',
     'Terms & Conditions',
   ];

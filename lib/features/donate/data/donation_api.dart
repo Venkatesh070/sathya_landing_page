@@ -163,32 +163,63 @@ class DonationApi {
     String? callbackUrl,
     String? cancelUrl,
   }) async {
-    final res = await _client.post(
-      _uri('/api/v1/donations/website/donate'),
-      headers: const {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'amount': amount,
-        'currency': 'ZAR',
-        'email': email.trim(),
-        if (nameFirst != null && nameFirst.trim().isNotEmpty)
-          'nameFirst': nameFirst.trim(),
-        if (nameLast != null && nameLast.trim().isNotEmpty)
-          'nameLast': nameLast.trim(),
-        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-        if (callbackUrl != null) 'callbackUrl': callbackUrl,
-        if (cancelUrl != null) 'cancelUrl': cancelUrl,
-      }),
-    );
-
-    final body = jsonDecode(res.body.isEmpty ? '{}' : res.body)
-        as Map<String, dynamic>;
-    if (res.statusCode < 200 || res.statusCode >= 300) {
+    late final http.Response res;
+    try {
+      res = await _client.post(
+        _uri('/api/v1/donations/website/donate'),
+        headers: const {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'amount': amount,
+          'currency': 'ZAR',
+          'email': email.trim(),
+          if (nameFirst != null && nameFirst.trim().isNotEmpty)
+            'nameFirst': nameFirst.trim(),
+          if (nameLast != null && nameLast.trim().isNotEmpty)
+            'nameLast': nameLast.trim(),
+          if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+          if (callbackUrl != null) 'callbackUrl': callbackUrl,
+          if (cancelUrl != null) 'cancelUrl': cancelUrl,
+        }),
+      );
+    } on http.ClientException catch (e) {
       throw DonationApiException(
-        (body['message'] as String?)?.trim().isNotEmpty == true
-            ? body['message'] as String
+        'Network error talking to $_baseUrl. ${e.message}',
+      );
+    } catch (e) {
+      throw DonationApiException(
+        'Could not reach the donation service ($_baseUrl). $e',
+      );
+    }
+
+    Map<String, dynamic> body;
+    try {
+      body = jsonDecode(res.body.isEmpty ? '{}' : res.body)
+          as Map<String, dynamic>;
+    } catch (_) {
+      throw DonationApiException(
+        'Donation service returned an unexpected response '
+        '(${res.statusCode}) from $_baseUrl. '
+        'If this is production, deploy the website-donate API first.',
+        statusCode: res.statusCode,
+      );
+    }
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      final msg = (body['message'] as String?)?.trim();
+      if (res.statusCode == 404) {
+        throw DonationApiException(
+          msg?.isNotEmpty == true
+              ? '$msg — website donate API is not deployed on $_baseUrl yet.'
+              : 'Website donate API not found on $_baseUrl (404). Deploy the backend update.',
+          statusCode: res.statusCode,
+        );
+      }
+      throw DonationApiException(
+        msg?.isNotEmpty == true
+            ? msg!
             : 'Could not start donation (${res.statusCode}).',
         statusCode: res.statusCode,
       );
@@ -204,7 +235,8 @@ class DonationApi {
     // Passphrase must never leave the server. merchant_key is required by
     // PayFast hosted POST checkout and is not the signing passphrase.
     if (result.formFields.containsKey('passphrase') ||
-        result.formFields.keys.any((k) => k.toLowerCase().contains('passphrase'))) {
+        result.formFields.keys
+            .any((k) => k.toLowerCase().contains('passphrase'))) {
       throw DonationApiException('Unsafe payment payload rejected.');
     }
     return result;

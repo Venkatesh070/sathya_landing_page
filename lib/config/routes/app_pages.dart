@@ -25,12 +25,8 @@ abstract final class AppPages {
       transition: Transition.noTransition,
       transitionDuration: Duration.zero,
     ),
-    GetPage(
-      name: AppRoutes.donate,
-      page: () => const DonatePage(),
-      transition: Transition.noTransition,
-      transitionDuration: Duration.zero,
-    ),
+    // Register success/cancelled before `/donate` so GetX does not treat
+    // `/donate/success` as the donate page with a leftover path segment.
     GetPage(
       name: AppRoutes.donateSuccess,
       page: () => const DonateResultPage(kind: DonateResultKind.success),
@@ -40,6 +36,12 @@ abstract final class AppPages {
     GetPage(
       name: AppRoutes.donateCancelled,
       page: () => const DonateResultPage(kind: DonateResultKind.cancelled),
+      transition: Transition.noTransition,
+      transitionDuration: Duration.zero,
+    ),
+    GetPage(
+      name: AppRoutes.donate,
+      page: () => const DonatePage(),
       transition: Transition.noTransition,
       transitionDuration: Duration.zero,
     ),

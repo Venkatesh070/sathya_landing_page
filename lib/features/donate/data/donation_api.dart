@@ -56,10 +56,12 @@ class WebsiteDonationPublicConfig {
       contactPhone: (json['contactPhone'] as String?)?.trim().isNotEmpty == true
           ? json['contactPhone'] as String
           : DonationConfig.fallbackContactPhone,
-      returnUrl: json['returnUrl'] as String? ??
-          '${DonationConfig.websiteOrigin}/#${DonationConfig.websiteDonateSuccessPath}',
-      cancelUrl: json['cancelUrl'] as String? ??
-          '${DonationConfig.websiteOrigin}/#${DonationConfig.websiteDonateCancelledPath}',
+      returnUrl: DonationConfig.sanitizeDonationReturnUrl(
+        json['returnUrl'] as String?,
+      ),
+      cancelUrl: DonationConfig.sanitizeDonationCancelUrl(
+        json['cancelUrl'] as String?,
+      ),
       configIncomplete: json['configIncomplete'] == true,
     );
   }
@@ -73,10 +75,8 @@ class WebsiteDonationPublicConfig {
         donationPurpose: DonationConfig.placeholderPurpose,
         contactEmail: DonationConfig.fallbackContactEmail,
         contactPhone: DonationConfig.fallbackContactPhone,
-        returnUrl:
-            '${DonationConfig.websiteOrigin}/#${DonationConfig.websiteDonateSuccessPath}',
-        cancelUrl:
-            '${DonationConfig.websiteOrigin}/#${DonationConfig.websiteDonateCancelledPath}',
+        returnUrl: DonationConfig.websiteDonateSuccessUrl,
+        cancelUrl: DonationConfig.websiteDonateCancelledUrl,
         configIncomplete: true,
       );
 }

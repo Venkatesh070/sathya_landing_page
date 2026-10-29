@@ -12,11 +12,25 @@ void main() {
     expect(AppRoutes.donateCancelled, '/donate/cancelled');
   });
 
-  test('donation URL uses HTTPS sathya domain', () {
+  test('donation URL uses HTTPS sathya domain path route', () {
     final uri = Uri.parse(DonationConfig.websiteDonateUrl);
     expect(uri.scheme, 'https');
     expect(uri.host, 'www.sathya.co.za');
-    expect(uri.fragment, '/donate');
+    expect(uri.path, '/donate');
+    expect(uri.fragment, isEmpty);
+  });
+
+  test('sanitizeDonationReturnUrl rejects homepage redirects', () {
+    expect(
+      DonationConfig.sanitizeDonationReturnUrl('https://www.sathya.co.za/'),
+      DonationConfig.websiteDonateSuccessUrl,
+    );
+    expect(
+      DonationConfig.sanitizeDonationReturnUrl(
+        'https://www.sathya.co.za/donate/success?from=app',
+      ),
+      'https://www.sathya.co.za/donate/success?from=app',
+    );
   });
 
   test('init result rejects passphrase leakage', () {

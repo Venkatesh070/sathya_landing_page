@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:sathya_landing/config/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -76,15 +77,19 @@ abstract final class LandingNavigation {
     }
   }
 
-  static String hashUrl(String route) {
+  /// Absolute URL for an in-app route using path strategy (`/donate`, not `/#/donate`).
+  static String appUrl(String route) {
     final path = route.startsWith('/') ? route : '/$route';
-    return '${Uri.base.origin}/#$path';
+    return '${Uri.base.origin}$path';
   }
+
+  @Deprecated('Use appUrl')
+  static String hashUrl(String route) => appUrl(route);
 
   static Future<void> openRouteInNewTab(String route) async {
     if (kIsWeb) {
       await launchUrl(
-        Uri.parse(hashUrl(route)),
+        Uri.parse(appUrl(route)),
         webOnlyWindowName: '_blank',
       );
       return;
@@ -118,22 +123,39 @@ abstract final class LandingNavigation {
     }
   }
 
+  /// Keeps the browser address bar on path routes (`/donate`) with
+  /// [usePathUrlStrategy], since GetX named nav alone can leave a hash URL.
+  static void _syncBrowserPath(String route) {
+    if (!kIsWeb) return;
+    final path = route.startsWith('/') ? route : '/$route';
+    SystemNavigator.routeInformationUpdated(
+      uri: Uri(path: path),
+      replace: true,
+    );
+  }
+
   static void goToLanding() {
-    if (Get.currentRoute == AppRoutes.landing) return;
-    Get.offNamed(AppRoutes.landing);
+    if (Get.currentRoute != AppRoutes.landing) {
+      Get.offNamed(AppRoutes.landing);
+    }
+    _syncBrowserPath(AppRoutes.landing);
   }
 
   static void goToDonate() {
-    if (Get.currentRoute == AppRoutes.donate) return;
-    Get.offNamed(AppRoutes.donate);
+    if (Get.currentRoute != AppRoutes.donate) {
+      Get.offNamed(AppRoutes.donate);
+    }
+    _syncBrowserPath(AppRoutes.donate);
   }
 
   static void goToLandingSection(String section) {
-    if (Get.currentRoute == AppRoutes.landing) return;
-    Get.offNamed(
-      AppRoutes.landing,
-      arguments: {'section': section},
-    );
+    if (Get.currentRoute != AppRoutes.landing) {
+      Get.offNamed(
+        AppRoutes.landing,
+        arguments: {'section': section},
+      );
+    }
+    _syncBrowserPath(AppRoutes.landing);
   }
 
   static void _navigateToLandingSection(

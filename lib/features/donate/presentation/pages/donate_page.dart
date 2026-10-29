@@ -4,7 +4,9 @@ import 'package:get/get.dart';
 import 'package:sathya_landing/config/donation_config.dart';
 import 'package:sathya_landing/config/routes/app_routes.dart';
 import 'package:sathya_landing/core/theme/app_typography.dart';
+import 'package:sathya_landing/features/donate/data/donate_from_app.dart';
 import 'package:sathya_landing/features/donate/data/donation_api.dart';
+import 'package:sathya_landing/features/donate/data/donation_receipt.dart';
 import 'package:sathya_landing/features/donate/data/payfast_redirect.dart';
 import 'package:sathya_landing/features/landing/presentation/landing_navigation.dart';
 import 'package:sathya_landing/features/landing/presentation/widgets/landing_chrome.dart';
@@ -25,6 +27,8 @@ class _DonatePageState extends State<DonatePage> {
   static const _flowerAsset = 'assets/images/donateFlowerImg.png';
 
   final _formKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _scrollCtrl = ScrollController();
   final _amountCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _firstNameCtrl = TextEditingController();
@@ -38,6 +42,7 @@ class _DonatePageState extends State<DonatePage> {
   int? _selectedPreset;
   bool _submitting = false;
   String? _submitError;
+  bool _cameFromMobileApp = false;
 
   @override
   void initState() {
@@ -79,6 +84,17 @@ class _DonatePageState extends State<DonatePage> {
       });
     }
 
+    _cameFromMobileApp = urlIndicatesDonateFromMobileApp(
+      queryParameters: Uri.base.queryParameters,
+      getParameters: Map<String, String>.from(
+        Get.parameters.map((k, v) => MapEntry(k, v.toString())),
+      ),
+      fragment: Uri.base.fragment,
+    );
+    if (_cameFromMobileApp) {
+      markCameFromMobileApp();
+    }
+
     final email = params['email'];
     final nameFirst = params['nameFirst'] ?? params['firstName'];
     final nameLast = params['nameLast'] ?? params['lastName'];
@@ -107,6 +123,7 @@ class _DonatePageState extends State<DonatePage> {
 
   @override
   void dispose() {
+    _scrollCtrl.dispose();
     _amountCtrl.dispose();
     _emailCtrl.dispose();
     _firstNameCtrl.dispose();
@@ -169,14 +186,29 @@ class _DonatePageState extends State<DonatePage> {
 
     setState(() => _submitting = true);
     try {
+      final fromApp =
+          _cameFromMobileApp || peekCameFromMobileAppFlag();
+      if (fromApp) {
+        markCameFromMobileApp();
+      }
+      final returnUrl = fromApp
+          ? appendDonateFromAppQuery(_config.returnUrl)
+          : _config.returnUrl;
+      final cancelUrl = fromApp
+          ? appendDonateFromAppQuery(_config.cancelUrl)
+          : _config.cancelUrl;
       final result = await _api.initiate(
         amount: amount,
         email: _emailCtrl.text,
         nameFirst: _firstNameCtrl.text,
         nameLast: _lastNameCtrl.text,
         note: _noteCtrl.text,
-        callbackUrl: _config.returnUrl,
-        cancelUrl: _config.cancelUrl,
+        callbackUrl: returnUrl,
+        cancelUrl: cancelUrl,
+      );
+      savePendingDonationReceipt(
+        amountLabel: formatZarAmountLabel(result.amount),
+        reference: result.reference,
       );
       await redirectToPayFast(
         paymentUrl: result.paymentUrl,
@@ -201,10 +233,9 @@ class _DonatePageState extends State<DonatePage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= 980;
-    final scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
-      key: scaffoldKey,
+      key: _scaffoldKey,
       backgroundColor: _cream,
       endDrawer: LandingMobileDrawer(
         activeNav: 'Donate',
@@ -215,15 +246,17 @@ class _DonatePageState extends State<DonatePage> {
           LandingNavBar(
             active: 'Donate',
             onNavLink: _onNav,
-            onOpenDrawer: () => scaffoldKey.currentState?.openEndDrawer(),
+            onOpenDrawer: () => _scaffoldKey.currentState?.openEndDrawer(),
           ),
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollCtrl,
               child: Column(
                 children: [
                   _HeroBanner(wide: wide),
                   Transform.translate(
-                    offset: Offset(0, wide ? -56 : -36),
+                    // Mobile: less pull-up so the donate image sits slightly lower.
+                    offset: Offset(0, wide ? -56 : -16),
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
                         wide ? 64 : 16,
@@ -429,7 +462,7 @@ class _DonationCard extends StatelessWidget {
             : Column(
                 children: [
                   const SizedBox(
-                    height: 300,
+                    height: 360,
                     width: double.infinity,
                     child: _StoryPanel(wide: false),
                   ),
@@ -729,6 +762,44 @@ class _StoryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const titleColor = Color(0xFF2A1608);
+    const bodyColor = Color(0xFF3B2412);
+
+    final copy = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: wide ? 310 : 250),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const _DecorativeLotusDivider(),
+          const SizedBox(height: 12),
+          Text(
+            'Your support\nmakes a difference',
+            textAlign: TextAlign.center,
+            style: AppTypography.lora(
+              fontSize: wide ? 28 : 22,
+              fontWeight: FontWeight.w700,
+              height: 1.22,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'With your generosity, we can continue to bring authentic '
+            'Vedic knowledge, spiritual guidance and valuable resources '
+            'to people around the world.',
+            textAlign: TextAlign.center,
+            style: AppTypography.inter(
+              fontSize: wide ? 14 : 12.5,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+              color: bodyColor,
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -736,91 +807,56 @@ class _StoryPanel extends StatelessWidget {
           child: Image.asset(
             _DonatePageState._flowerAsset,
             fit: BoxFit.cover,
-            alignment: Alignment(wide ? -0.92 : -0.3, 0.0),
+            alignment: Alignment(wide ? -0.92 : -0.88, wide ? 0.0 : 0.12),
+            filterQuality: FilterQuality.high,
+            isAntiAlias: true,
           ),
         ),
-        if (wide)
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.transparent,
-                    Colors.white.withValues(alpha: 0.12),
-                    Colors.white.withValues(alpha: 0.55),
-                  ],
-                  stops: const [0.35, 0.65, 1.0],
-                ),
-              ),
-            ),
-          )
-        else
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.white.withValues(alpha: 0.70),
-                    Colors.white.withValues(alpha: 0.95),
-                  ],
-                  stops: const [0.25, 0.65, 1.0],
-                ),
-              ),
+        // Soft image dim for text readability — a bit stronger on mobile.
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: wide
+                  ? LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.28),
+                        Colors.white.withValues(alpha: 0.55),
+                      ],
+                      stops: const [0.28, 0.58, 1.0],
+                    )
+                  : LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.52),
+                        Colors.white.withValues(alpha: 0.36),
+                        Colors.white.withValues(alpha: 0.18),
+                        Colors.white.withValues(alpha: 0.28),
+                      ],
+                      stops: const [0.0, 0.30, 0.65, 1.0],
+                    ),
             ),
           ),
+        ),
         Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: wide ? 28 : 20,
-            vertical: wide ? 36 : 24,
+          padding: EdgeInsets.fromLTRB(
+            wide ? 28 : 16,
+            wide ? 24 : 36,
+            wide ? 28 : 16,
+            wide ? 28 : 20,
           ),
-              child: Align(
-                alignment: wide
-                    ? const Alignment(0.92, -0.42)
-                    : const Alignment(0.0, -0.25),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: wide ? 310 : double.infinity,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const _DecorativeLotusDivider(),
-                      const SizedBox(height: 14),
-                      Text(
-                        'Your support\nmakes a difference',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.lora(
-                          fontSize: wide ? 28 : 24,
-                          fontWeight: FontWeight.w700,
-                          height: 1.22,
-                          color: _DonatePageState._ink,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'With your generosity, we can continue to bring authentic '
-                        'Vedic knowledge, spiritual guidance and valuable resources '
-                        'to people around the world.',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.inter(
-                          fontSize: wide ? 14 : 13.5,
-                          height: 1.55,
-                          color: _DonatePageState._muted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
+          child: Align(
+            alignment: wide
+                ? const Alignment(0.92, -0.78)
+                : const Alignment(1.0, -0.72),
+            child: copy,
+          ),
+        ),
+      ],
+    );
   }
 }
 

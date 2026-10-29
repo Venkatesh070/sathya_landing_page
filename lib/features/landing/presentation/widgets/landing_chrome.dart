@@ -496,13 +496,33 @@ class LandingFooter extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '© ${DateTime.now().year} Sathya Application. All Rights Reserved.',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.inter(
-                    fontSize: wide ? 13 : 12,
-                    color: Colors.white60,
-                  ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 0,
+                  runSpacing: 8,
+                  children: [
+                    Text(
+                      '© ${DateTime.now().year} Sathya Application. All Rights Reserved.',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.inter(
+                        fontSize: wide ? 13 : 12,
+                        color: Colors.white60,
+                      ),
+                    ),
+                    SizedBox(width: wide ? 28 : 16),
+                    _copyrightLink(
+                      'Privacy Policy',
+                      wide: wide,
+                      onTap: () => onLinkTap('Privacy Policy'),
+                    ),
+                    _copyrightMeta(' · ', wide: wide),
+                    _copyrightLink(
+                      'Terms & Conditions',
+                      wide: wide,
+                      onTap: () => onLinkTap('Terms & Conditions'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 Center(
@@ -781,6 +801,37 @@ class LandingFooter extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _copyrightMeta(String text, {required bool wide}) {
+    return Text(
+      text,
+      style: AppTypography.inter(
+        fontSize: wide ? 13 : 12,
+        color: Colors.white38,
+      ),
+    );
+  }
+
+  Widget _copyrightLink(
+    String label, {
+    required bool wide,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Text(
+          label,
+          style: AppTypography.inter(
+            fontSize: wide ? 13 : 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 

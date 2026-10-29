@@ -32,5 +32,40 @@ abstract final class DonationConfig {
   static String get websiteDonateSuccessPath => '/donate/success';
   static String get websiteDonateCancelledPath => '/donate/cancelled';
 
-  static String get websiteDonateUrl => '$websiteOrigin/#$websiteDonatePath';
+  static String get websiteDonateUrl => '$websiteOrigin$websiteDonatePath';
+  static String get websiteDonateSuccessUrl =>
+      '$websiteOrigin$websiteDonateSuccessPath';
+  static String get websiteDonateCancelledUrl =>
+      '$websiteOrigin$websiteDonateCancelledPath';
+
+  /// PayFast must never return to the bare homepage.
+  static String sanitizeDonationReturnUrl(String? raw) {
+    final fallback = websiteDonateSuccessUrl;
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return fallback;
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.hasScheme) return fallback;
+    final path = uri.path.replaceAll(RegExp(r'/+$'), '');
+    if (path.isEmpty || path == '/') return fallback;
+    if (!path.toLowerCase().contains('success') &&
+        !path.toLowerCase().contains('donate')) {
+      return fallback;
+    }
+    return value;
+  }
+
+  static String sanitizeDonationCancelUrl(String? raw) {
+    final fallback = websiteDonateCancelledUrl;
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return fallback;
+    final uri = Uri.tryParse(value);
+    if (uri == null || !uri.hasScheme) return fallback;
+    final path = uri.path.replaceAll(RegExp(r'/+$'), '');
+    if (path.isEmpty || path == '/') return fallback;
+    if (!path.toLowerCase().contains('cancel') &&
+        !path.toLowerCase().contains('donate')) {
+      return fallback;
+    }
+    return value;
+  }
 }

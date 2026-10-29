@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sathya_landing/config/routes/app_pages.dart';
-import 'package:sathya_landing/config/routes/app_routes.dart';
+import 'package:sathya_landing/config/routes/initial_route.dart';
 import 'package:sathya_landing/core/theme/app_typography.dart';
 
 class SathyaLandingApp extends StatelessWidget {
@@ -19,7 +19,7 @@ class SathyaLandingApp extends StatelessWidget {
           ThemeData.light().textTheme,
         ),
       ),
-      initialRoute: AppRoutes.landing,
+      initialRoute: resolveInitialRoute(),
       defaultTransition: Transition.noTransition,
       transitionDuration: Duration.zero,
       getPages: AppPages.routes,

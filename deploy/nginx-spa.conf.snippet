@@ -1,0 +1,10 @@
+# Path-based Flutter web routes (/donate, /donate/success, …) need SPA fallback.
+# Include inside your server { } block for the landing site root.
+#
+# location / {
+#   try_files $uri $uri/ /index.html;
+# }
+
+location / {
+  try_files $uri $uri/ /index.html;
+}
